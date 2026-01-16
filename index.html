@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leave Days Tracker</title>
+    <title>Tsiku Leave Tracker</title>
     <style>
         * {
             margin: 0;
@@ -50,10 +50,34 @@
             margin-top: 10px;
         }
         
+        .rules-box {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .rules-box h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .rules-box ul {
+            margin-left: 20px;
+            color: #555;
+            font-size: 13px;
+        }
+        
+        .rules-box li {
+            margin: 5px 0;
+        }
+        
         .employee-selector {
             display: flex;
             gap: 10px;
             align-items: center;
+            flex-wrap: wrap;
         }
         
         .employee-selector select {
@@ -165,6 +189,32 @@
             border-color: #667eea;
         }
         
+        .late-indicator {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: 600;
+            display: none;
+        }
+        
+        .late-indicator.on-time {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        
+        .late-indicator.late {
+            background: #fff3cd;
+            color: #856404;
+            display: block;
+        }
+        
+        .late-indicator.very-late {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        
         .btn {
             background: #667eea;
             color: white;
@@ -232,6 +282,28 @@
         
         tr:hover {
             background: #f9f9f9;
+        }
+        
+        .late-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .late-badge.on-time {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .late-badge.late {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .late-badge.very-late {
+            background: #f8d7da;
+            color: #721c24;
         }
         
         .export-section {
@@ -341,9 +413,18 @@
         <div class="header">
             <div class="header-top">
                 <div>
-                    <h1>Leave Days Accumulation Tracker</h1>
+                    <h1>Tsiku Leave Tracker</h1>
                     <div class="info">
-                        Accumulation Rate: 1.75 days per 20 workdays (45 minutes per 8-hour day)
+                        Official Arrival: 07:45 AM | Accumulation: 45 minutes per day on time
+                    </div>
+                    <div class="rules-box">
+                        <h4>📋 Accumulation Rules:</h4>
+                        <ul>
+                            <li><strong>On time</strong> (by 07:55 AM): +45 minutes</li>
+                            <li><strong>Late</strong> (after 07:55 AM): 45 minutes - late minutes</li>
+                            <li><strong>Sick days</strong>: No accumulation</li>
+                            <li><strong>Example:</strong> Arrive 08:15 AM (30 min late) = 45 - 30 = 15 minutes accumulated</li>
+                        </ul>
                     </div>
                 </div>
                 <div class="employee-selector">
@@ -399,11 +480,19 @@
                 </div>
                 
                 <div class="input-group">
+                    <label>Arrival Time (Official: 07:45 AM)</label>
+                    <input type="time" id="arrivalTime" value="07:45" onchange="calculateLate()" />
+                </div>
+                
+                <div id="lateIndicator" class="late-indicator"></div>
+                
+                <div class="input-group">
                     <label>Status</label>
-                    <select id="dayStatus">
-                        <option value="worked">Worked (Accumulates Leave)</option>
+                    <select id="dayStatus" onchange="toggleArrivalTime()">
+                        <option value="worked">Worked</option>
                         <option value="sick">Sick Day (No Accumulation)</option>
                         <option value="leave">Leave Taken</option>
+                        <option value="absent">Absent (No Show)</option>
                     </select>
                 </div>
                 
@@ -424,7 +513,9 @@
                             <th>Days Worked</th>
                             <th>Sick Days</th>
                             <th>Leave Taken</th>
-                            <th>Leave Accumulated</th>
+                            <th>Late Days</th>
+                            <th>Minutes Accumulated</th>
+                            <th>Days Accumulated</th>
                         </tr>
                     </thead>
                     <tbody id="monthlyBody"></tbody>
@@ -443,10 +534,12 @@
                     <thead>
                         <tr>
                             <th>Date</th>
+                            <th>Arrival</th>
                             <th>Status</th>
-                            <th>Daily Accumulation</th>
-                            <th>Leave Taken</th>
-                            <th>Running Balance</th>
+                            <th>Minutes Late</th>
+                            <th>Minutes Accumulated</th>
+                            <th>Leave Taken (Days)</th>
+                            <th>Running Balance (Days)</th>
                         </tr>
                     </thead>
                     <tbody id="balanceBody"></tbody>
@@ -487,7 +580,10 @@
     </div>
     
     <script>
-        const ACCUMULATION_RATE = 0.0875;
+        const OFFICIAL_ARRIVAL = "07:45";
+        const GRACE_PERIOD_MINUTES = 10;
+        const DAILY_ACCUMULATION_MINUTES = 45;
+        
         let employees = [];
         let entries = [];
         let currentEmployeeId = null;
@@ -496,11 +592,6 @@
             loadData();
             setDefaultDate();
             updateAllDisplays();
-            
-            document.getElementById('dayStatus').addEventListener('change', function() {
-                const leaveGroup = document.getElementById('leaveAmountGroup');
-                leaveGroup.style.display = this.value === 'leave' ? 'block' : 'none';
-            });
         });
         
         function setDefaultDate() {
@@ -521,7 +612,6 @@
             }
             
             if (employees.length === 0) {
-                // Add default employee
                 employees.push({
                     id: 'emp_' + Date.now(),
                     name: 'Default Employee',
@@ -565,6 +655,60 @@
             updateAllDisplays();
         }
         
+        function calculateLate() {
+            const status = document.getElementById('dayStatus').value;
+            if (status !== 'worked') return;
+            
+            const arrivalTime = document.getElementById('arrivalTime').value;
+            if (!arrivalTime) return;
+            
+            const official = new Date('2000-01-01 ' + OFFICIAL_ARRIVAL);
+            const arrival = new Date('2000-01-01 ' + arrivalTime);
+            const lateMinutes = Math.round((arrival - official) / 60000);
+            
+            const indicator = document.getElementById('lateIndicator');
+            
+            if (lateMinutes <= GRACE_PERIOD_MINUTES) {
+                indicator.className = 'late-indicator on-time';
+                indicator.innerHTML = `✅ <strong>On Time!</strong> Will accumulate full 45 minutes (0.0938 days)`;
+            } else {
+                const accumulated = DAILY_ACCUMULATION_MINUTES - lateMinutes;
+                const accumulatedDays = (accumulated / 480).toFixed(4);
+                
+                if (accumulated > 0) {
+                    indicator.className = 'late-indicator late';
+                    indicator.innerHTML = `⚠️ <strong>${lateMinutes} minutes late.</strong> Will accumulate: ${accumulated} minutes (${accumulatedDays} days)`;
+                } else if (accumulated === 0) {
+                    indicator.className = 'late-indicator very-late';
+                    indicator.innerHTML = `❌ <strong>${lateMinutes} minutes late.</strong> No accumulation today (0 minutes)`;
+                } else {
+                    indicator.className = 'late-indicator very-late';
+                    indicator.innerHTML = `❌ <strong>${lateMinutes} minutes late.</strong> DEDUCTION: ${accumulated} minutes (${accumulatedDays} days)`;
+                }
+            }
+        }
+        
+        function toggleArrivalTime() {
+            const status = document.getElementById('dayStatus').value;
+            const arrivalGroup = document.getElementById('arrivalTime').parentElement;
+            const leaveGroup = document.getElementById('leaveAmountGroup');
+            const indicator = document.getElementById('lateIndicator');
+            
+            if (status === 'worked') {
+                arrivalGroup.style.display = 'block';
+                leaveGroup.style.display = 'none';
+                calculateLate();
+            } else if (status === 'leave') {
+                arrivalGroup.style.display = 'none';
+                leaveGroup.style.display = 'block';
+                indicator.style.display = 'none';
+            } else {
+                arrivalGroup.style.display = 'none';
+                leaveGroup.style.display = 'none';
+                indicator.style.display = 'none';
+            }
+        }
+        
         function openAddEmployeeModal() {
             document.getElementById('addEmployeeModal').classList.add('active');
             document.getElementById('newEmployeeName').value = '';
@@ -601,6 +745,7 @@
             const employeeId = document.getElementById('entryEmployee').value;
             const date = document.getElementById('workDate').value;
             const status = document.getElementById('dayStatus').value;
+            const arrivalTime = document.getElementById('arrivalTime').value;
             const leaveTaken = status === 'leave' ? parseFloat(document.getElementById('leaveTaken').value) : 0;
             
             if (!date) {
@@ -616,13 +761,29 @@
                 entries.splice(existingIndex, 1);
             }
             
-            const accumulated = status === 'worked' ? ACCUMULATION_RATE : 0;
+            let accumulatedMinutes = 0;
+            let lateMinutes = 0;
+            
+            if (status === 'worked') {
+                const official = new Date('2000-01-01 ' + OFFICIAL_ARRIVAL);
+                const arrival = new Date('2000-01-01 ' + arrivalTime);
+                lateMinutes = Math.max(0, Math.round((arrival - official) / 60000));
+                
+                if (lateMinutes <= GRACE_PERIOD_MINUTES) {
+                    accumulatedMinutes = DAILY_ACCUMULATION_MINUTES;
+                    lateMinutes = 0;
+                } else {
+                    accumulatedMinutes = DAILY_ACCUMULATION_MINUTES - lateMinutes;
+                }
+            }
             
             entries.push({
                 employeeId: employeeId,
                 date: date,
                 status: status,
-                accumulated: accumulated,
+                arrivalTime: arrivalTime,
+                lateMinutes: lateMinutes,
+                accumulatedMinutes: accumulatedMinutes,
                 leaveTaken: leaveTaken
             });
             
@@ -632,7 +793,8 @@
             
             setDefaultDate();
             document.getElementById('dayStatus').value = 'worked';
-            document.getElementById('leaveAmountGroup').style.display = 'none';
+            document.getElementById('arrivalTime').value = '07:45';
+            toggleArrivalTime();
         }
         
         function getEmployeeEntries(employeeId) {
@@ -648,27 +810,28 @@
         
         function updateSummaryCards() {
             const empEntries = getEmployeeEntries(currentEmployeeId);
-            let totalAccumulated = 0;
+            let totalMinutes = 0;
             let totalTaken = 0;
             let totalWorked = 0;
-            let monthAccumulated = 0;
+            let monthMinutes = 0;
             
             const currentMonth = new Date().toISOString().slice(0, 7);
             
             empEntries.forEach(entry => {
-                totalAccumulated += entry.accumulated;
+                totalMinutes += entry.accumulatedMinutes;
                 totalTaken += entry.leaveTaken;
                 if (entry.status === 'worked') totalWorked++;
                 
                 if (entry.date.startsWith(currentMonth) && entry.status === 'worked') {
-                    monthAccumulated += entry.accumulated;
+                    monthMinutes += entry.accumulatedMinutes;
                 }
             });
             
-            const balance = totalAccumulated - totalTaken;
+            const balanceDays = (totalMinutes / 480) - totalTaken;
+            const monthDays = monthMinutes / 480;
             
-            document.getElementById('totalBalance').textContent = balance.toFixed(2);
-            document.getElementById('monthAccumulated').textContent = monthAccumulated.toFixed(2);
+            document.getElementById('totalBalance').textContent = balanceDays.toFixed(2);
+            document.getElementById('monthAccumulated').textContent = monthDays.toFixed(2);
             document.getElementById('totalWorked').textContent = totalWorked;
         }
         
@@ -683,13 +846,17 @@
                         worked: 0,
                         sick: 0,
                         leaveTaken: 0,
-                        accumulated: 0
+                        lateDays: 0,
+                        accumulatedMinutes: 0
                     };
                 }
                 
                 if (entry.status === 'worked') {
                     monthlyData[month].worked++;
-                    monthlyData[month].accumulated += entry.accumulated;
+                    monthlyData[month].accumulatedMinutes += entry.accumulatedMinutes;
+                    if (entry.lateMinutes > GRACE_PERIOD_MINUTES) {
+                        monthlyData[month].lateDays++;
+                    }
                 } else if (entry.status === 'sick') {
                     monthlyData[month].sick++;
                 }
@@ -707,7 +874,9 @@
                     <td>${data.worked}</td>
                     <td>${data.sick}</td>
                     <td>${data.leaveTaken.toFixed(2)}</td>
-                    <td>${data.accumulated.toFixed(2)}</td>
+                    <td>${data.lateDays}</td>
+                    <td>${data.accumulatedMinutes}</td>
+                    <td>${(data.accumulatedMinutes / 480).toFixed(2)}</td>
                 `;
             });
             
@@ -720,24 +889,38 @@
             const tbody = document.getElementById('balanceBody');
             tbody.innerHTML = '';
             
-            let runningBalance = 0;
+            let runningMinutes = 0;
             
             empEntries.forEach(entry => {
-                runningBalance += entry.accumulated - entry.leaveTaken;
+                runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
                 
                 const row = tbody.insertRow();
                 const statusText = {
                     'worked': 'Worked',
                     'sick': 'Sick Day',
-                    'leave': 'Leave Taken'
+                    'leave': 'Leave Taken',
+                    'absent': 'Absent'
                 }[entry.status];
+                
+                let lateBadge = '';
+                if (entry.status === 'worked') {
+                    if (entry.lateMinutes === 0) {
+                        lateBadge = '<span class="late-badge on-time">On Time</span>';
+                    } else if (entry.lateMinutes <= 30) {
+                        lateBadge = '<span class="late-badge late">' + entry.lateMinutes + ' min</span>';
+                    } else {
+                        lateBadge = '<span class="late-badge very-late">' + entry.lateMinutes + ' min</span>';
+                    }
+                }
                 
                 row.innerHTML = `
                     <td>${new Date(entry.date).toLocaleDateString()}</td>
+                    <td>${entry.arrivalTime || '-'}</td>
                     <td>${statusText}</td>
-                    <td>${entry.accumulated.toFixed(4)}</td>
+                    <td>${lateBadge}</td>
+                    <td>${entry.accumulatedMinutes > 0 ? '+' + entry.accumulatedMinutes : entry.accumulatedMinutes}</td>
                     <td>${entry.leaveTaken > 0 ? entry.leaveTaken.toFixed(2) : '-'}</td>
-                    <td><strong>${runningBalance.toFixed(2)}</strong></td>
+                    <td><strong>${(runningMinutes / 480).toFixed(2)}</strong></td>
                 `;
             });
             
@@ -751,17 +934,17 @@
             
             employees.forEach(emp => {
                 const empEntries = getEmployeeEntries(emp.id);
-                let totalAccumulated = 0;
+                let totalMinutes = 0;
                 let totalTaken = 0;
                 let totalWorked = 0;
                 
                 empEntries.forEach(entry => {
-                    totalAccumulated += entry.accumulated;
+                    totalMinutes += entry.accumulatedMinutes;
                     totalTaken += entry.leaveTaken;
                     if (entry.status === 'worked') totalWorked++;
                 });
                 
-                const balance = totalAccumulated - totalTaken;
+                const balance = (totalMinutes / 480) - totalTaken;
                 
                 const card = document.createElement('div');
                 card.className = 'employee-card';
@@ -820,33 +1003,29 @@
             const empEntries = getEmployeeEntries(currentEmployeeId);
             
             let csv = `Employee: ${employee.name} (${employee.employeeId})\n`;
-            csv += 'Date,Status,Days Worked,Sick Days,Leave Taken,Leave Accumulated,Running Balance\n';
+            csv += 'Date,Arrival Time,Status,Minutes Late,Minutes Accumulated,Leave Taken (Days),Running Balance (Days)\n';
             
-            let runningBalance = 0;
+            let runningMinutes = 0;
             empEntries.forEach(entry => {
-                runningBalance += entry.accumulated - entry.leaveTaken;
-                const worked = entry.status === 'worked' ? '1' : '0';
-                const sick = entry.status === 'sick' ? '1' : '0';
+                runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
                 
-                csv += `${entry.date},${entry.status},${worked},${sick},${entry.leaveTaken.toFixed(2)},${entry.accumulated.toFixed(4)},${runningBalance.toFixed(2)}\n`;
+                csv += `${entry.date},${entry.arrivalTime || '-'},${entry.status},${entry.lateMinutes},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)}\n`;
             });
             
             downloadCSV(csv, `leave_tracker_${employee.employeeId}.csv`);
         }
         
         function exportAllEmployeesCSV() {
-            let csv = 'Employee Name,Employee ID,Date,Status,Days Worked,Sick Days,Leave Taken,Leave Accumulated,Running Balance\n';
+            let csv = 'Employee Name,Employee ID,Date,Arrival Time,Status,Minutes Late,Minutes Accumulated,Leave Taken (Days),Running Balance (Days)\n';
             
             employees.forEach(emp => {
                 const empEntries = getEmployeeEntries(emp.id);
-                let runningBalance = 0;
+                let runningMinutes = 0;
                 
                 empEntries.forEach(entry => {
-                    runningBalance += entry.accumulated - entry.leaveTaken;
-                    const worked = entry.status === 'worked' ? '1' : '0';
-                    const sick = entry.status === 'sick' ? '1' : '0';
+                    runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
                     
-                    csv += `${emp.name},${emp.employeeId},${entry.date},${entry.status},${worked},${sick},${entry.leaveTaken.toFixed(2)},${entry.accumulated.toFixed(4)},${runningBalance.toFixed(2)}\n`;
+                    csv += `${emp.name},${emp.employeeId},${entry.date},${entry.arrivalTime || '-'},${entry.status},${entry.lateMinutes},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)}\n`;
                 });
             });
             
