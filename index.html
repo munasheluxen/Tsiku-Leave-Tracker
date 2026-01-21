@@ -902,3 +902,8 @@
                 accumulatedMinutes: accumulatedMinutes,
                 leaveTaken: leaveTaken,
                 comments: comments
+            });
+            
+            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+            saveData();
+            updateAllDisplays();
