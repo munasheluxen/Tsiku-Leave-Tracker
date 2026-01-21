@@ -175,18 +175,34 @@
             font-weight: 600;
         }
         
-        .input-group input, .input-group select {
+        .input-group input, .input-group select, .input-group textarea {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
             transition: border 0.3s;
+            font-family: inherit;
         }
         
-        .input-group input:focus, .input-group select:focus {
+        .input-group textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
             outline: none;
             border-color: #667eea;
+        }
+        
+        .location-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            background: #e3f2fd;
+            color: #1976d2;
         }
         
         .late-indicator {
@@ -266,12 +282,21 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        thead, tbody {
+            display: table;
+            width: 100%;
+            table-layout: fixed;
         }
         
         th, td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e0e0e0;
+            word-wrap: break-word;
         }
         
         th {
@@ -304,6 +329,21 @@
         .late-badge.very-late {
             background: #f8d7da;
             color: #721c24;
+        }
+        
+        .comment-cell {
+            max-width: 200px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            cursor: pointer;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        .comment-cell:hover {
+            color: #667eea;
+            text-decoration: underline;
         }
         
         .export-section {
@@ -480,6 +520,28 @@
                 </div>
                 
                 <div class="input-group">
+                    <label>
+                        <input type="checkbox" id="menlynOffice" onchange="toggleLocation()" style="width: auto; margin-right: 8px;" />
+                        Working at Menlyn Office
+                    </label>
+                </div>
+                
+                <div class="input-group" id="locationGroup">
+                    <label>Location (Out of Office)</label>
+                    <select id="location">
+                        <option value="KZN">KZN (KwaZulu-Natal)</option>
+                        <option value="GP">GP (Gauteng)</option>
+                        <option value="LP">LP (Limpopo)</option>
+                        <option value="MP">MP (Mpumalanga)</option>
+                        <option value="NW">NW (North West)</option>
+                        <option value="NC">NC (Northern Cape)</option>
+                        <option value="WC">WC (Western Cape)</option>
+                        <option value="EC">EC (Eastern Cape)</option>
+                        <option value="FS">FS (Free State)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
                     <label>Arrival Time (Official: 07:45 AM)</label>
                     <input type="time" id="arrivalTime" value="07:45" onchange="calculateLate()" />
                 </div>
@@ -490,8 +552,10 @@
                     <label>Status</label>
                     <select id="dayStatus" onchange="toggleArrivalTime()">
                         <option value="worked">Worked</option>
-                        <option value="sick">Sick Day (No Accumulation)</option>
-                        <option value="leave">Leave Taken</option>
+                        <option value="sick">Sick Leave (No Accumulation)</option>
+                        <option value="annual">Annual Leave Taken</option>
+                        <option value="study">Study Leave</option>
+                        <option value="family">Family Responsibility Leave</option>
                         <option value="absent">Absent (No Show)</option>
                     </select>
                 </div>
@@ -499,6 +563,11 @@
                 <div class="input-group" id="leaveAmountGroup" style="display: none;">
                     <label>Leave Days Taken</label>
                     <input type="number" id="leaveTaken" step="0.25" value="1" min="0" />
+                </div>
+                
+                <div class="input-group">
+                    <label>Comments / Notes (Optional)</label>
+                    <textarea id="comments" placeholder="Add any additional notes or comments about this entry..."></textarea>
                 </div>
                 
                 <button class="btn" onclick="addEntry()">Add Entry</button>
@@ -512,7 +581,9 @@
                             <th>Month</th>
                             <th>Days Worked</th>
                             <th>Sick Days</th>
-                            <th>Leave Taken</th>
+                            <th>Annual Leave</th>
+                            <th>Study Leave</th>
+                            <th>Family Leave</th>
                             <th>Late Days</th>
                             <th>Minutes Accumulated</th>
                             <th>Days Accumulated</th>
@@ -530,20 +601,24 @@
             
             <div id="balance" class="section">
                 <h2 style="margin-bottom: 20px; color: #667eea;">Leave Balance Details - <span id="balanceEmployeeName"></span></h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Arrival</th>
-                            <th>Status</th>
-                            <th>Minutes Late</th>
-                            <th>Minutes Accumulated</th>
-                            <th>Leave Taken (Days)</th>
-                            <th>Running Balance (Days)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="balanceBody"></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="min-width: 100px;">Date</th>
+                                <th style="min-width: 80px;">Location</th>
+                                <th style="min-width: 80px;">Arrival</th>
+                                <th style="min-width: 120px;">Status</th>
+                                <th style="min-width: 100px;">Minutes Late</th>
+                                <th style="min-width: 120px;">Minutes Accumulated</th>
+                                <th style="min-width: 100px;">Leave Taken</th>
+                                <th style="min-width: 120px;">Running Balance</th>
+                                <th style="min-width: 150px;">Comments</th>
+                            </tr>
+                        </thead>
+                        <tbody id="balanceBody"></tbody>
+                    </table>
+                </div>
             </div>
             
             <div id="employees" class="section">
@@ -579,6 +654,16 @@
         </div>
     </div>
     
+    <!-- Comment Modal -->
+    <div id="commentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeCommentModal()">&times;</span>
+            <h2>Entry Comments</h2>
+            <p id="commentContent" style="color: #333; line-height: 1.6; white-space: pre-wrap;"></p>
+            <button class="btn btn-secondary" onclick="closeCommentModal()">Close</button>
+        </div>
+    </div>
+    
     <script>
         const OFFICIAL_ARRIVAL = "07:45";
         const GRACE_PERIOD_MINUTES = 10;
@@ -591,6 +676,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
             setDefaultDate();
+            toggleLocation();
             updateAllDisplays();
         });
         
@@ -655,6 +741,17 @@
             updateAllDisplays();
         }
         
+        function toggleLocation() {
+            const menlynChecked = document.getElementById('menlynOffice').checked;
+            const locationGroup = document.getElementById('locationGroup');
+            
+            if (menlynChecked) {
+                locationGroup.style.display = 'none';
+            } else {
+                locationGroup.style.display = 'block';
+            }
+        }
+        
         function calculateLate() {
             const status = document.getElementById('dayStatus').value;
             if (status !== 'worked') return;
@@ -694,11 +791,13 @@
             const leaveGroup = document.getElementById('leaveAmountGroup');
             const indicator = document.getElementById('lateIndicator');
             
+            const leaveStatuses = ['annual', 'study', 'family'];
+            
             if (status === 'worked') {
                 arrivalGroup.style.display = 'block';
                 leaveGroup.style.display = 'none';
                 calculateLate();
-            } else if (status === 'leave') {
+            } else if (leaveStatuses.includes(status)) {
                 arrivalGroup.style.display = 'none';
                 leaveGroup.style.display = 'block';
                 indicator.style.display = 'none';
@@ -717,6 +816,19 @@
         
         function closeAddEmployeeModal() {
             document.getElementById('addEmployeeModal').classList.remove('active');
+        }
+        
+        function showComment(comment) {
+            if (!comment || comment.trim() === '') {
+                alert('No comments for this entry');
+                return;
+            }
+            document.getElementById('commentContent').textContent = comment;
+            document.getElementById('commentModal').classList.add('active');
+        }
+        
+        function closeCommentModal() {
+            document.getElementById('commentModal').classList.remove('active');
         }
         
         function addEmployee() {
@@ -745,8 +857,11 @@
             const employeeId = document.getElementById('entryEmployee').value;
             const date = document.getElementById('workDate').value;
             const status = document.getElementById('dayStatus').value;
+            const menlynChecked = document.getElementById('menlynOffice').checked;
+            const location = menlynChecked ? 'Menlyn Office' : document.getElementById('location').value;
             const arrivalTime = document.getElementById('arrivalTime').value;
-            const leaveTaken = status === 'leave' ? parseFloat(document.getElementById('leaveTaken').value) : 0;
+            const comments = document.getElementById('comments').value.trim();
+            const leaveTaken = ['annual', 'study', 'family'].includes(status) ? parseFloat(document.getElementById('leaveTaken').value) : 0;
             
             if (!date) {
                 alert('Please select a date');
@@ -781,266 +896,9 @@
                 employeeId: employeeId,
                 date: date,
                 status: status,
+                location: location,
                 arrivalTime: arrivalTime,
                 lateMinutes: lateMinutes,
                 accumulatedMinutes: accumulatedMinutes,
-                leaveTaken: leaveTaken
-            });
-            
-            entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-            saveData();
-            updateAllDisplays();
-            
-            setDefaultDate();
-            document.getElementById('dayStatus').value = 'worked';
-            document.getElementById('arrivalTime').value = '07:45';
-            toggleArrivalTime();
-        }
-        
-        function getEmployeeEntries(employeeId) {
-            return entries.filter(e => e.employeeId === employeeId);
-        }
-        
-        function updateAllDisplays() {
-            updateSummaryCards();
-            updateMonthlyTable();
-            updateBalanceTable();
-            updateEmployeesList();
-        }
-        
-        function updateSummaryCards() {
-            const empEntries = getEmployeeEntries(currentEmployeeId);
-            let totalMinutes = 0;
-            let totalTaken = 0;
-            let totalWorked = 0;
-            let monthMinutes = 0;
-            
-            const currentMonth = new Date().toISOString().slice(0, 7);
-            
-            empEntries.forEach(entry => {
-                totalMinutes += entry.accumulatedMinutes;
-                totalTaken += entry.leaveTaken;
-                if (entry.status === 'worked') totalWorked++;
-                
-                if (entry.date.startsWith(currentMonth) && entry.status === 'worked') {
-                    monthMinutes += entry.accumulatedMinutes;
-                }
-            });
-            
-            const balanceDays = (totalMinutes / 480) - totalTaken;
-            const monthDays = monthMinutes / 480;
-            
-            document.getElementById('totalBalance').textContent = balanceDays.toFixed(2);
-            document.getElementById('monthAccumulated').textContent = monthDays.toFixed(2);
-            document.getElementById('totalWorked').textContent = totalWorked;
-        }
-        
-        function updateMonthlyTable() {
-            const empEntries = getEmployeeEntries(currentEmployeeId);
-            const monthlyData = {};
-            
-            empEntries.forEach(entry => {
-                const month = entry.date.slice(0, 7);
-                if (!monthlyData[month]) {
-                    monthlyData[month] = {
-                        worked: 0,
-                        sick: 0,
-                        leaveTaken: 0,
-                        lateDays: 0,
-                        accumulatedMinutes: 0
-                    };
-                }
-                
-                if (entry.status === 'worked') {
-                    monthlyData[month].worked++;
-                    monthlyData[month].accumulatedMinutes += entry.accumulatedMinutes;
-                    if (entry.lateMinutes > GRACE_PERIOD_MINUTES) {
-                        monthlyData[month].lateDays++;
-                    }
-                } else if (entry.status === 'sick') {
-                    monthlyData[month].sick++;
-                }
-                monthlyData[month].leaveTaken += entry.leaveTaken;
-            });
-            
-            const tbody = document.getElementById('monthlyBody');
-            tbody.innerHTML = '';
-            
-            Object.keys(monthlyData).sort().reverse().forEach(month => {
-                const data = monthlyData[month];
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</td>
-                    <td>${data.worked}</td>
-                    <td>${data.sick}</td>
-                    <td>${data.leaveTaken.toFixed(2)}</td>
-                    <td>${data.lateDays}</td>
-                    <td>${data.accumulatedMinutes}</td>
-                    <td>${(data.accumulatedMinutes / 480).toFixed(2)}</td>
-                `;
-            });
-            
-            const employee = employees.find(e => e.id === currentEmployeeId);
-            document.getElementById('monthlyEmployeeName').textContent = employee ? employee.name : '';
-        }
-        
-        function updateBalanceTable() {
-            const empEntries = getEmployeeEntries(currentEmployeeId);
-            const tbody = document.getElementById('balanceBody');
-            tbody.innerHTML = '';
-            
-            let runningMinutes = 0;
-            
-            empEntries.forEach(entry => {
-                runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
-                
-                const row = tbody.insertRow();
-                const statusText = {
-                    'worked': 'Worked',
-                    'sick': 'Sick Day',
-                    'leave': 'Leave Taken',
-                    'absent': 'Absent'
-                }[entry.status];
-                
-                let lateBadge = '';
-                if (entry.status === 'worked') {
-                    if (entry.lateMinutes === 0) {
-                        lateBadge = '<span class="late-badge on-time">On Time</span>';
-                    } else if (entry.lateMinutes <= 30) {
-                        lateBadge = '<span class="late-badge late">' + entry.lateMinutes + ' min</span>';
-                    } else {
-                        lateBadge = '<span class="late-badge very-late">' + entry.lateMinutes + ' min</span>';
-                    }
-                }
-                
-                row.innerHTML = `
-                    <td>${new Date(entry.date).toLocaleDateString()}</td>
-                    <td>${entry.arrivalTime || '-'}</td>
-                    <td>${statusText}</td>
-                    <td>${lateBadge}</td>
-                    <td>${entry.accumulatedMinutes > 0 ? '+' + entry.accumulatedMinutes : entry.accumulatedMinutes}</td>
-                    <td>${entry.leaveTaken > 0 ? entry.leaveTaken.toFixed(2) : '-'}</td>
-                    <td><strong>${(runningMinutes / 480).toFixed(2)}</strong></td>
-                `;
-            });
-            
-            const employee = employees.find(e => e.id === currentEmployeeId);
-            document.getElementById('balanceEmployeeName').textContent = employee ? employee.name : '';
-        }
-        
-        function updateEmployeesList() {
-            const container = document.getElementById('employeeList');
-            container.innerHTML = '';
-            
-            employees.forEach(emp => {
-                const empEntries = getEmployeeEntries(emp.id);
-                let totalMinutes = 0;
-                let totalTaken = 0;
-                let totalWorked = 0;
-                
-                empEntries.forEach(entry => {
-                    totalMinutes += entry.accumulatedMinutes;
-                    totalTaken += entry.leaveTaken;
-                    if (entry.status === 'worked') totalWorked++;
-                });
-                
-                const balance = (totalMinutes / 480) - totalTaken;
-                
-                const card = document.createElement('div');
-                card.className = 'employee-card';
-                card.innerHTML = `
-                    <h4>${emp.name}</h4>
-                    <p style="color: #666; font-size: 13px; margin-bottom: 10px;">ID: ${emp.employeeId}</p>
-                    <div class="employee-stats">
-                        <div>
-                            <div class="label">Balance</div>
-                            <div class="stat-value">${balance.toFixed(2)}</div>
-                        </div>
-                        <div>
-                            <div class="label">Days Worked</div>
-                            <div class="stat-value">${totalWorked}</div>
-                        </div>
-                    </div>
-                    <button class="btn" style="width: 100%; margin-top: 15px;" onclick="viewEmployee('${emp.id}')">View Details</button>
-                `;
-                container.appendChild(card);
-            });
-        }
-        
-        function viewEmployee(employeeId) {
-            currentEmployeeId = employeeId;
-            document.getElementById('employeeSelect').value = employeeId;
-            document.getElementById('entryEmployee').value = employeeId;
-            updateAllDisplays();
-            showTab('monthly');
-        }
-        
-        function showTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-        }
-        
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear ALL data for ALL employees? This cannot be undone.')) {
-                entries = [];
-                employees = [{
-                    id: 'emp_' + Date.now(),
-                    name: 'Default Employee',
-                    employeeId: 'EMP001'
-                }];
-                currentEmployeeId = employees[0].id;
-                saveData();
-                populateEmployeeSelectors();
-                updateAllDisplays();
-            }
-        }
-        
-        function exportToCSV() {
-            const employee = employees.find(e => e.id === currentEmployeeId);
-            const empEntries = getEmployeeEntries(currentEmployeeId);
-            
-            let csv = `Employee: ${employee.name} (${employee.employeeId})\n`;
-            csv += 'Date,Arrival Time,Status,Minutes Late,Minutes Accumulated,Leave Taken (Days),Running Balance (Days)\n';
-            
-            let runningMinutes = 0;
-            empEntries.forEach(entry => {
-                runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
-                
-                csv += `${entry.date},${entry.arrivalTime || '-'},${entry.status},${entry.lateMinutes},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)}\n`;
-            });
-            
-            downloadCSV(csv, `leave_tracker_${employee.employeeId}.csv`);
-        }
-        
-        function exportAllEmployeesCSV() {
-            let csv = 'Employee Name,Employee ID,Date,Arrival Time,Status,Minutes Late,Minutes Accumulated,Leave Taken (Days),Running Balance (Days)\n';
-            
-            employees.forEach(emp => {
-                const empEntries = getEmployeeEntries(emp.id);
-                let runningMinutes = 0;
-                
-                empEntries.forEach(entry => {
-                    runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
-                    
-                    csv += `${emp.name},${emp.employeeId},${entry.date},${entry.arrivalTime || '-'},${entry.status},${entry.lateMinutes},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)}\n`;
-                });
-            });
-            
-            downloadCSV(csv, 'leave_tracker_all_employees.csv');
-        }
-        
-        function downloadCSV(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-    </script>
-</body>
-</html>
+                leaveTaken: leaveTaken,
+                comments: comments
