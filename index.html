@@ -8,9 +8,11 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
+        .header { background: white; padding: 20px 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
         .header-top { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
-        h1 { color: #667eea; margin-bottom: 10px; }
+        .header-left { display:flex; align-items:center; gap:16px; }
+        #logo { height:70px; border-radius:8px; object-fit:contain; }
+        h1 { color: #667eea; margin-bottom: 10px; font-size: 28px; }
         .info { color: #666; font-size: 14px; margin-top: 10px; }
         .rules-box { background: #f0f4ff; padding: 15px; border-radius: 8px; margin-top: 15px; border-left: 4px solid #667eea; }
         .rules-box h4 { color: #667eea; margin-bottom: 8px; }
@@ -26,14 +28,14 @@
         .card .value { font-size: 36px; font-weight: bold; color: #667eea; }
         .card .subtext { color: #999; font-size: 12px; margin-top: 5px; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab { flex: 1; min-width: 150px; padding: 15px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .tab { flex: 1; min-width: 150px; padding: 15px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; box-shadow: 0 5[...]
         .tab.active { background: #667eea; color: white; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
         .content { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .section { display: none; }
         .section.active { display: block; }
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border 0.3s; font-family: inherit; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border 0.3s; font-famil[...]
         .input-group textarea { min-height: 80px; resize: vertical; }
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: #667eea; }
         .location-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #e3f2fd; color: #1976d2; }
@@ -45,7 +47,7 @@
         .late-indicator.on-time { background: #d4edda; color: #155724; display: block; }
         .late-indicator.late { background: #fff3cd; color: #856404; display: block; }
         .late-indicator.very-late { background: #f8d7da; color: #721c24; display: block; }
-        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; margin-right: 10px; margin-bottom: 10px; }
+        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; margin-right: 10px; ma[...]
         .btn:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
         .btn-secondary { background: #e0e0e0; color: #333; }
         .btn-secondary:hover { background: #d0d0d0; }
@@ -87,36 +89,56 @@
         .warning-box { background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
         .warning-box p { color: #856404; margin: 5px 0; font-size: 14px; }
         .warning-box strong { color: #721c24; }
+
+        /* Approval badges */
+        .approval-badge { display:inline-block; padding:6px 10px; border-radius:6px; font-weight:700; font-size:12px; }
+        .approval-badge.approved { background:#d4edda; color:#155724; }
+        .approval-badge.rejected { background:#f8d7da; color:#721c24; }
+        .approval-badge.pending { background:#fff3cd; color:#856404; }
+
+        /* Report note style */
+        .report-note { margin-top: 10px; color: #444; font-size: 14px; font-weight:600; }
+
+        /* Print / Report improvements */
+        @media print {
+            body { background: white; color: #111; padding: 0; }
+            .header, .content, .employee-card, .card { box-shadow: none; border-radius: 0; }
+            .no-print { display:none; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="header-top">
-                <div>
-                    <h1>Tsiku Leave Tracker</h1>
-                    <div class="info">Official Arrival: 07:45 AM | Accumulation: 45 minutes per day on time</div>
-                    <div class="rules-box">
-                        <h4>📋 Accumulation Rules:</h4>
-                        <ul>
-                            <li><strong>On time</strong> (by 07:55 AM): +45 minutes</li>
-                            <li><strong>Late</strong> (after 07:55 AM): 45 minutes - late minutes</li>
-                            <li><strong>Sick days</strong>: No accumulation</li>
-                            <li><strong>Example:</strong> Arrive 08:15 AM (30 min late) = 45 - 30 = 15 minutes accumulated</li>
-                        </ul>
-                    </div>
-                    <div class="lunch-box">
-                        <h4>🍽️ Lunch Period Rules:</h4>
-                        <ul>
-                            <li><strong>Group A:</strong> 12:00 PM - 1:00 PM (strict)</li>
-                            <li><strong>Group B:</strong> 1:00 PM - 2:00 PM (strict)</li>
-                            <li><strong>Late return:</strong> Deduct exceeded minutes from daily 45 min</li>
-                            <li><strong>Example:</strong> Group A returns 13:10 (10 min late) = 45 - 10 = 35 min accumulated</li>
-                            <li><strong>⚠️ Late return requires:</strong> Manager approval + reason in comments</li>
-                        </ul>
+                <div class="header-left">
+                    <!-- Logo: place your logo file at assets/logo.png or provide a URL here -->
+                    <img id="logo" src="assets/logo.png" alt="Tsiku Logo" onerror="this.style.display='none'"/>
+                    <div>
+                        <h1>Tsiku Leave Tracker</h1>
+                        <div class="info">Official Arrival: 07:45 AM | Accumulation: 45 minutes per day on time</div>
+                        <div class="rules-box">
+                            <h4>📋 Accumulation Rules:</h4>
+                            <ul>
+                                <li><strong>On time</strong> (by 07:55 AM): +45 minutes</li>
+                                <li><strong>Late</strong> (after 07:55 AM): 45 minutes - late minutes</li>
+                                <li><strong>Sick days</strong>: No accumulation</li>
+                                <li><strong>Example:</strong> Arrive 08:15 AM (30 min late) = 45 - 30 = 15 minutes accumulated</li>
+                            </ul>
+                        </div>
+                        <div class="lunch-box">
+                            <h4>🍽️ Lunch Period Rules:</h4>
+                            <ul>
+                                <li><strong>Group A:</strong> 12:00 PM - 1:00 PM (strict)</li>
+                                <li><strong>Group B:</strong> 1:00 PM - 2:00 PM (strict)</li>
+                                <li><strong>Late return:</strong> Deduct exceeded minutes from daily 45 min</li>
+                                <li><strong>Example:</strong> Group A returns 13:10 (10 min late) = 45 - 10 = 35 min accumulated</li>
+                                <li><strong>⚠️ Late return requires:</strong> Manager approval + reason in comments</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                <div class="employee-selector">
+                <div class="employee-selector no-print">
                     <label style="font-weight: 600; color: #333;">View Employee:</label>
                     <select id="employeeSelect" onchange="switchEmployee()"></select>
                     <button class="btn btn-success" onclick="openAddEmployeeModal()">+ Add Employee</button>
@@ -129,9 +151,10 @@
             <div class="card"><h3>This Month</h3><div class="value" id="monthAccumulated">0.00</div><div class="subtext">days accumulated</div></div>
             <div class="card"><h3>Days Worked</h3><div class="value" id="totalWorked">0</div><div class="subtext">total workdays</div></div>
             <div class="card"><h3>Total Employees</h3><div class="value" id="totalEmployees">0</div><div class="subtext">registered</div></div>
+            <div class="card"><h3>Sick Accrued (This Year)</h3><div class="value" id="sickAccrued">0</div><div class="subtext">days available</div></div>
         </div>
         
-        <div class="tabs">
+        <div class="tabs no-print">
             <button class="tab active" onclick="showTab(event, 'entry')">Record Entry</button>
             <button class="tab" onclick="showTab(event, 'monthly')">Monthly Summary</button>
             <button class="tab" onclick="showTab(event, 'balance')">Balance Details</button>
@@ -143,9 +166,9 @@
                 <h2 style="margin-bottom: 20px; color: #667eea;">Record Daily Attendance</h2>
                 <div class="input-group"><label>Employee</label><select id="entryEmployee"></select></div>
                 <div class="input-group"><label>Date (From)</label><input type="date" id="workDate" /></div>
-                <div class="input-group" id="dateRangeGroup" style="display: none;"><label>Leave Period (To Date)</label><input type="date" id="toDate" /><small style="color: #666; margin-top: 5px; display: block;">Leave will be recorded for each day in this range</small></div>
-                <div class="input-group"><label><input type="checkbox" id="menlynOffice" onchange="toggleLocation()" style="width: auto; margin-right: 8px;" checked />Working at Menlyn Office</label></div>
-                <div class="input-group" id="locationGroup" style="display: none;"><label>Location (Out of Office)</label><select id="location"><option value="KZN">KZN</option><option value="GP">GP</option><option value="LP">LP</option><option value="MP">MP</option><option value="NW">NW</option><option value="NC">NC</option><option value="WC">WC</option><option value="EC">EC</option><option value="FS">FS</option></select></div>
+                <div class="input-group" id="dateRangeGroup" style="display: none;"><label>Leave Period (To Date)</label><input type="date" id="toDate" /><small style="color: #666; margin-top: 5px; di[...]
+                <div class="input-group"><label><input type="checkbox" id="menlynOffice" onchange="toggleLocation()" style="width: auto; margin-right: 8px;" checked />Working at Menlyn Office</label><[...]
+                <div class="input-group" id="locationGroup" style="display: none;"><label>Location (Out of Office)</label><select id="location"><option value="KZN">KZN</option><option value="GP">GP</o[...]
                 <div class="input-group" id="arrivalGroup"><label>Arrival Time (Official: 07:45 AM)</label><input type="time" id="arrivalTime" value="07:45" onchange="calculateLate()" /></div>
                 <div id="lateIndicator" class="late-indicator"></div>
                 
@@ -180,17 +203,18 @@
                 
                 <div id="lunchIndicator" class="late-indicator" style="display: none;"></div>
                 
-                <div class="input-group"><label>Status</label><select id="dayStatus" onchange="toggleArrivalTime()"><option value="worked">Worked</option><option value="sick">Sick Leave</option><option value="annual">Annual Leave</option><option value="study">Study Leave</option><option value="family">Family Leave</option><option value="absent">Absent</option></select></div>
-                <div class="input-group" id="leaveAmountGroup" style="display: none;"><label>Leave Days Per Day</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1" /><small style="color: #666; margin-top: 5px; display: block;">Usually 1 day per calendar day. Use 0.5 for half-day leave</small></div>
+                <div class="input-group"><label>Status</label><select id="dayStatus" onchange="toggleArrivalTime()"><option value="worked">Worked</option><option value="sick">Sick Leave</option><optio[...]
+                <div class="input-group" id="leaveAmountGroup" style="display: none;"><label>Leave Days Per Day</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1" /><sm[...]
                 <div class="input-group"><label>Comments / Notes (Optional)</label><textarea id="comments" placeholder="Add any notes..."></textarea></div>
                 <button class="btn" onclick="addEntry()">Add Entry</button>
             </div>
             
             <div id="monthly" class="section">
                 <h2 style="margin-bottom: 20px; color: #667eea;">Monthly Summary - <span id="monthlyEmployeeName"></span></h2>
-                <table><thead><tr><th>Month</th><th>Days Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins</th><th>Days</th></tr></thead><tbody id="monthlyBody"></tbody></table>
+                <table><thead><tr><th>Month</th><th>Days Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins</th><th>Days</th></tr><[...]
                 <div class="export-section">
                     <h3 style="margin-bottom: 15px; color: #667eea;">Export Data</h3>
+                    <div class="report-note">Reports must be beautiful and nice. The exported CSV includes a header that notes it was generated by Tsiku Leave Tracker.</div>
                     <button class="btn" onclick="exportToCSV()">Download CSV</button>
                     <button class="btn btn-secondary" onclick="exportAllEmployeesCSV()">Download All CSV</button>
                 </div>
@@ -198,7 +222,7 @@
             
             <div id="balance" class="section">
                 <h2 style="margin-bottom: 20px; color: #667eea;">Balance Details - <span id="balanceEmployeeName"></span></h2>
-                <div style="overflow-x: auto;"><table><thead><tr><th>Date</th><th>Location</th><th>Arrival</th><th>Lunch Period</th><th>Status</th><th>Late</th><th>Lunch Deduct</th><th>Mins</th><th>Leave</th><th>Balance</th><th>Comments</th><th>Actions</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
+                <div style="overflow-x: auto;"><table><thead><tr><th>Date</th><th>Location</th><th>Arrival</th><th>Lunch Period</th><th>Status</th><th>Late</th><th>Lunch Deduct</th><th>Mins</th><th>Le[...]
             </div>
             
             <div id="employees" class="section">
@@ -254,6 +278,26 @@
         </div>
     </div>
     
+    <div id="leaveApprovalModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeLeaveApprovalModal()">&times;</span>
+            <h3>Leave Approval</h3>
+            <div class="input-group">
+                <label>Approver Name</label>
+                <input type="text" id="leaveApproverName" placeholder="e.g., Manager Name" />
+            </div>
+            <div class="input-group">
+                <label>Comments / Reason (optional)</label>
+                <textarea id="leaveApprovalReason" rows="4" placeholder="Provide reason or notes..."></textarea>
+            </div>
+            <div style="display:flex; gap:10px; justify-content:flex-end;">
+                <button class="btn btn-success" id="leaveApproveBtn" onclick="confirmLeaveApproval('approved')">Approve</button>
+                <button class="btn btn-danger" id="leaveRejectBtn" onclick="confirmLeaveApproval('rejected')">Reject</button>
+                <button class="btn btn-secondary" onclick="closeLeaveApprovalModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <div id="commentModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeCommentModal()">&times;</span>
@@ -277,6 +321,9 @@
         let entries = [];
         let currentEmployeeId = null;
         let pendingEntry = null;
+
+        // For leave approval modal context
+        let leaveApprovalContext = { empId: null, entryDate: null, action: null, entryIndex: null };
 
         function setDefaultDate() {
             document.getElementById('workDate').value = new Date().toISOString().split('T')[0];
@@ -401,7 +448,7 @@
             } else {
                 const remainingAccumulation = DAILY_ACCUMULATION_MINUTES - lateMinutes;
                 indicator.className = 'late-indicator very-late';
-                indicator.innerHTML = `❌ <strong>${lateMinutes} min late return!</strong> Will deduct ${lateMinutes} min from daily 45 min. Final accumulation: ${remainingAccumulation} min<br><strong>⚠️ Requires manager approval + reason!</strong>`;
+                indicator.innerHTML = `❌ <strong>${lateMinutes} min late return!</strong> Will deduct ${lateMinutes} min from daily 45 min. Final accumulation: ${remainingAccumulation} min<br><stron[...]
                 indicator.style.display = 'block';
             }
         }
@@ -510,7 +557,7 @@
             }
 
             // Handle date range for leave
-            if (['annual', 'study', 'family'].includes(status) && toDate) {
+            if (['annual', 'study', 'family', 'sick'].includes(status) && toDate) {
                 const start = new Date(fromDate);
                 const end = new Date(toDate);
                 
@@ -530,7 +577,8 @@
                         arrivalTime: null, lateMinutes: 0, accumulatedMinutes: 0,
                         leaveTaken, comments,
                         lunchGroup: null, lunchStart: null, lunchEnd: null,
-                        lunchLateMinutes: 0, managerApproval: null, lunchReason: null
+                        lunchLateMinutes: 0, managerApproval: null, lunchReason: null,
+                        approvalStatus: null, approver: null, approvalReason: null
                     });
                     count++;
                 }
@@ -642,7 +690,8 @@
                 employeeId, date: fromDate, status, location, arrivalTime, 
                 lateMinutes, accumulatedMinutes, leaveTaken, comments,
                 lunchGroup, lunchStart, lunchEnd, lunchLateMinutes,
-                managerApproval, lunchReason
+                managerApproval, lunchReason,
+                approvalStatus: null, approver: null, approvalReason: null
             });
             entries.sort((a, b) => new Date(a.date) - new Date(b.date));
             saveData();
@@ -683,6 +732,7 @@
             const empEntries = getEmployeeEntries(currentEmployeeId);
             let totalMinutes = 0, totalTaken = 0, totalWorked = 0, monthMinutes = 0;
             const currentMonth = new Date().toISOString().slice(0, 7);
+            const currentYear = new Date().getFullYear();
 
             empEntries.forEach(entry => {
                 totalMinutes += entry.accumulatedMinutes;
@@ -691,9 +741,16 @@
                 if (entry.date.startsWith(currentMonth) && entry.status === 'worked') monthMinutes += entry.accumulatedMinutes;
             });
 
+            // Sick accrual calculation:
+            // As requested: 6 sick days per year; accrual = 1 sick day per 2 months worked (≈ 40 work days).
+            // We'll calculate using worked days count: 1 sick day per 40 worked days, but cap at 6 for the current year.
+            const workedDaysThisYear = empEntries.filter(e => e.status === 'worked' && new Date(e.date).getFullYear() === currentYear).length;
+            const sickAccruedThisYear = Math.min(6, Math.floor(workedDaysThisYear / 40)); // 1 per 40 worked days, max 6/year
+
             document.getElementById('totalBalance').textContent = ((totalMinutes / 480) - totalTaken).toFixed(2);
             document.getElementById('monthAccumulated').textContent = (monthMinutes / 480).toFixed(2);
             document.getElementById('totalWorked').textContent = totalWorked;
+            document.getElementById('sickAccrued').textContent = sickAccruedThisYear;
         }
 
         function updateMonthlyTable() {
@@ -719,19 +776,21 @@
             });
 
             const tbody = document.getElementById('monthlyBody');
-            tbody.innerHTML = '';
+            if (tbody) {
+                tbody.innerHTML = '';
 
-            Object.keys(monthlyData).sort().reverse().forEach(month => {
-                const data = monthlyData[month];
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td>${new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</td>
-                    <td>${data.worked}</td><td>${data.sick}</td><td>${data.annual.toFixed(2)}</td>
-                    <td>${data.study.toFixed(2)}</td><td>${data.family.toFixed(2)}</td><td>${data.lateDays}</td>
-                    <td>${data.lunchViolations}</td>
-                    <td>${data.accumulatedMinutes}</td><td>${(data.accumulatedMinutes / 480).toFixed(2)}</td>
-                `;
-            });
+                Object.keys(monthlyData).sort().reverse().forEach(month => {
+                    const data = monthlyData[month];
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${new Date(month + '-01').toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}</td>
+                        <td>${data.worked}</td><td>${data.sick}</td><td>${data.annual.toFixed(2)}</td>
+                        <td>${data.study.toFixed(2)}</td><td>${data.family.toFixed(2)}</td><td>${data.lateDays}</td>
+                        <td>${data.lunchViolations}</td>
+                        <td>${data.accumulatedMinutes}</td><td>${(data.accumulatedMinutes / 480).toFixed(2)}</td>
+                    `;
+                });
+            }
 
             const emp = employees.find(e => e.id === currentEmployeeId);
             document.getElementById('monthlyEmployeeName').textContent = emp ? emp.name : '';
@@ -740,48 +799,69 @@
         function updateBalanceTable() {
             const empEntries = getEmployeeEntries(currentEmployeeId);
             const tbody = document.getElementById('balanceBody');
-            tbody.innerHTML = '';
-            let runningMinutes = 0;
+            if (tbody) {
+                tbody.innerHTML = '';
+                let runningMinutes = 0;
 
-            empEntries.forEach((entry, idx) => {
-                runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
-                const row = tbody.insertRow();
-                const statusText = { worked: 'Worked', sick: 'Sick Leave', annual: 'Annual Leave', study: 'Study Leave', family: 'Family Leave', absent: 'Absent' }[entry.status];
+                empEntries.forEach((entry, idx) => {
+                    runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
+                    const row = tbody.insertRow();
+                    const statusText = { worked: 'Worked', sick: 'Sick Leave', annual: 'Annual Leave', study: 'Study Leave', family: 'Family Leave', absent: 'Absent' }[entry.status];
 
-                let lateBadge = '';
-                if (entry.status === 'worked') {
-                    lateBadge = entry.lateMinutes === 0 ? '<span class="late-badge on-time">On Time</span>' :
-                        entry.lateMinutes <= 30 ? `<span class="late-badge late">${entry.lateMinutes} min</span>` :
-                        `<span class="late-badge very-late">${entry.lateMinutes} min</span>`;
-                }
-                
-                let lunchBadge = '-';
-                if (entry.status === 'worked' && entry.lunchStart && entry.lunchEnd) {
-                    if (entry.lunchLateMinutes === 0) {
-                        lunchBadge = `<span class="lunch-badge normal">${entry.lunchStart}-${entry.lunchEnd}</span>`;
-                    } else {
-                        lunchBadge = `<span class="lunch-badge pending" title="Approved by ${entry.managerApproval}">${entry.lunchStart}-${entry.lunchEnd}</span>`;
+                    let lateBadge = '';
+                    if (entry.status === 'worked') {
+                        lateBadge = entry.lateMinutes === 0 ? '<span class="late-badge on-time">On Time</span>' :
+                            entry.lateMinutes <= 30 ? `<span class="late-badge late">${entry.lateMinutes} min</span>` :
+                            `<span class="late-badge very-late">${entry.lateMinutes} min</span>`;
                     }
-                }
+                    
+                    let lunchBadge = '-';
+                    if (entry.status === 'worked' && entry.lunchStart && entry.lunchEnd) {
+                        if (entry.lunchLateMinutes === 0) {
+                            lunchBadge = `<span class="lunch-badge normal">${entry.lunchStart}-${entry.lunchEnd}</span>`;
+                        } else {
+                            lunchBadge = `<span class="lunch-badge pending" title="Approved by ${entry.managerApproval}">${entry.lunchStart}-${entry.lunchEnd}</span>`;
+                        }
+                    }
 
-                const commentDisplay = entry.comments ?
-                    `<span class="comment-cell" onclick="showComment('${entry.comments.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">${entry.comments.substring(0, 30)}${entry.comments.length > 30 ? '...' : ''}</span>` :
-                    '<span style="color: #ccc;">-</span>';
+                    const commentDisplay = entry.comments ?
+                        `<span class="comment-cell" onclick="showComment('${entry.comments.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">${entry.comments.substring(0, 30)}${entry.comments.length > 30 ? '[...]' : ''}</span>` :
+                        '<span style="color: #ccc;">-</span>';
 
-                row.innerHTML = `
-                    <td>${new Date(entry.date).toLocaleDateString()}</td>
-                    <td><span class="location-badge">${entry.location}</span></td>
-                    <td>${entry.arrivalTime || '-'}</td>
-                    <td>${lunchBadge}</td>
-                    <td>${statusText}</td><td>${lateBadge}</td>
-                    <td>${entry.lunchLateMinutes > 0 ? '-' + entry.lunchLateMinutes : '-'}</td>
-                    <td>${entry.accumulatedMinutes > 0 ? '+' + entry.accumulatedMinutes : entry.accumulatedMinutes}</td>
-                    <td>${entry.leaveTaken > 0 ? entry.leaveTaken.toFixed(2) : '-'}</td>
-                    <td><strong>${(runningMinutes / 480).toFixed(2)}</strong></td>
-                    <td>${commentDisplay}</td>
-                    <td><button class="btn" style="padding: 6px 12px; font-size: 12px; margin: 0;" onclick="editEntry(${idx})">Edit</button></td>
-                `;
-            });
+                    // Approval badge for leave entries
+                    let approvalBadge = '';
+                    if (['annual','study','family','sick'].includes(entry.status)) {
+                        if (entry.approvalStatus === 'approved') approvalBadge = `<span class="approval-badge approved">Approved by ${entry.approver || '-'}</span>`;
+                        else if (entry.approvalStatus === 'rejected') approvalBadge = `<span class="approval-badge rejected">Rejected by ${entry.approver || '-'}</span>`;
+                        else approvalBadge = `<span class="approval-badge pending">Pending Approval</span>`;
+                    }
+
+                    // Approve / Reject buttons for leave rows
+                    let approvalButtons = '';
+                    if (['annual','study','family','sick'].includes(entry.status)) {
+                        approvalButtons = `
+                            <button class="btn btn-success" style="padding:6px 10px; font-size:12px; margin-right:6px;" onclick="openLeaveApproval('${entry.employeeId}','${entry.date}', ${idx}, 'approved')">Approve</button>
+                            <button class="btn btn-danger" style="padding:6px 10px; font-size:12px;" onclick="openLeaveApproval('${entry.employeeId}','${entry.date}', ${idx}, 'rejected')">Reject</button>
+                        `;
+                    }
+
+                    row.innerHTML = `
+                        <td>${new Date(entry.date).toLocaleDateString()}</td>
+                        <td><span class="location-badge">${entry.location}</span></td>
+                        <td>${entry.arrivalTime || '-'}</td>
+                        <td>${lunchBadge}</td>
+                        <td>${statusText}</td><td>${lateBadge}</td>
+                        <td>${entry.lunchLateMinutes > 0 ? '-' + entry.lunchLateMinutes : '-'}</td>
+                        <td>${entry.accumulatedMinutes > 0 ? '+' + entry.accumulatedMinutes : entry.accumulatedMinutes}</td>
+                        <td>${entry.leaveTaken > 0 ? entry.leaveTaken.toFixed(2) : '-'}</td>
+                        <td><strong>${(runningMinutes / 480).toFixed(2)}</strong></td>
+                        <td>${commentDisplay}</td>
+                        <td>${approvalBadge}</td>
+                        <td>${approvalButtons}</td>
+                        <td><button class="btn" style="padding: 6px 12px; font-size: 12px; margin: 0;" onclick="editEntry(${idx})">Edit</button></td>
+                    `;
+                });
+            }
 
             const emp = employees.find(e => e.id === currentEmployeeId);
             document.getElementById('balanceEmployeeName').textContent = emp ? emp.name : '';
@@ -801,6 +881,11 @@
                     if (entry.status === 'worked') totalWorked++;
                 });
 
+                // Sick accrual for the employee this year
+                const currentYear = new Date().getFullYear();
+                const workedDaysThisYear = empEntries.filter(e => e.status === 'worked' && new Date(e.date).getFullYear() === currentYear).length;
+                const sickAccruedThisYear = Math.min(6, Math.floor(workedDaysThisYear / 40));
+
                 const balance = (totalMinutes / 480) - totalTaken;
                 const card = document.createElement('div');
                 card.className = 'employee-card';
@@ -810,6 +895,16 @@
                     <div class="employee-stats">
                         <div><div class="label">Balance</div><div class="stat-value">${balance.toFixed(2)}</div></div>
                         <div><div class="label">Days Worked</div><div class="stat-value">${totalWorked}</div></div>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                        <div style="flex:1; background:white; border-radius:6px; padding:8px; text-align:center;">
+                            <div style="font-size:11px;color:#666;">Sick Accrued</div>
+                            <div style="font-weight:700;color:#667eea;font-size:18px;">${sickAccruedThisYear}</div>
+                        </div>
+                        <div style="flex:1; background:white; border-radius:6px; padding:8px; text-align:center;">
+                            <div style="font-size:11px;color:#666;">Leave Taken</div>
+                            <div style="font-weight:700;color:#667eea;font-size:18px;">${totalTaken.toFixed(2)}</div>
+                        </div>
                     </div>
                     <button class="btn" style="width: 48%; margin-top: 15px;" onclick="viewEmployee('${emp.id}')">View</button>
                     <button class="btn btn-danger" style="width: 48%; margin-top: 15px;" onclick="deleteEmployee('${emp.id}')">Delete</button>
@@ -823,7 +918,9 @@
             document.getElementById('employeeSelect').value = empId;
             document.getElementById('entryEmployee').value = empId;
             updateAllDisplays();
-            showTab(event, 'monthly');
+            // show monthly tab
+            const monthlyTab = Array.from(document.querySelectorAll('.tab')).find(t => t.textContent.includes('Monthly'));
+            if (monthlyTab) showTab({ target: monthlyTab }, 'monthly');
         }
 
         function deleteEmployee(empId) {
@@ -918,25 +1015,78 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        // ====== Leave approval flow ======
+        function openLeaveApproval(empId, entryDate, entryIndex, action) {
+            leaveApprovalContext = { empId, entryDate, action, entryIndex };
+            document.getElementById('leaveApproverName').value = '';
+            document.getElementById('leaveApprovalReason').value = '';
+            document.getElementById('leaveApprovalModal').classList.add('active');
+            // Highlight buttons appropriately (approve/reject)
+            if (action === 'approved') {
+                document.getElementById('leaveApproveBtn').style.display = 'inline-block';
+                document.getElementById('leaveRejectBtn').style.display = 'none';
+            } else {
+                document.getElementById('leaveApproveBtn').style.display = 'none';
+                document.getElementById('leaveRejectBtn').style.display = 'inline-block';
+            }
+        }
+
+        function closeLeaveApprovalModal() {
+            document.getElementById('leaveApprovalModal').classList.remove('active');
+            leaveApprovalContext = { empId: null, entryDate: null, action: null, entryIndex: null };
+        }
+
+        function confirmLeaveApproval(result) {
+            const approver = document.getElementById('leaveApproverName').value.trim();
+            const reason = document.getElementById('leaveApprovalReason').value.trim();
+            if (!approver) {
+                alert('Please enter approver name');
+                return;
+            }
+            const ctx = leaveApprovalContext;
+            if (!ctx || !ctx.empId || !ctx.entryDate) {
+                alert('Approval context missing');
+                closeLeaveApprovalModal();
+                return;
+            }
+
+            // Find global entry index
+            const globalIndex = entries.findIndex(e => e.employeeId === ctx.empId && e.date === ctx.entryDate);
+            if (globalIndex < 0) {
+                alert('Entry not found');
+                closeLeaveApprovalModal();
+                return;
+            }
+
+            entries[globalIndex].approvalStatus = result; // 'approved' or 'rejected'
+            entries[globalIndex].approver = approver;
+            entries[globalIndex].approvalReason = reason || null;
+
+            saveData();
+            updateAllDisplays();
+            closeLeaveApprovalModal();
+            alert(`Leave ${result === 'approved' ? 'approved' : 'rejected'} by ${approver}`);
+        }
+
+        // ====== Export changes: add note header ======
         function exportToCSV() {
             const emp = employees.find(e => e.id === currentEmployeeId);
             const empEntries = getEmployeeEntries(currentEmployeeId);
-            let csv = `Employee: ${emp.name} (${emp.employeeId}) - Lunch Group ${emp.lunchGroup || 'A'}\nDate,Location,Arrival,Lunch Time,Lunch Late,Manager Approval,Status,Late,Lunch Deduct,Mins,Leave,Balance,Comments\n`;
+            let csv = `Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nEmployee: ${emp.name} (${emp.employeeId}) - Lunch Group ${emp.lunchGroup || 'A'}\nDate,Location,Arrival,Lunch Time,Lunch Late,Manager Approval,Status,Late,Lunch Deduct,Mins,Leave,Approval,Approver,Comments\n`;
             let runningMinutes = 0;
 
             empEntries.forEach(entry => {
                 runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
                 const comment = (entry.comments || '').replace(/"/g, '""');
                 const lunchTime = (entry.lunchStart && entry.lunchEnd) ? `${entry.lunchStart}-${entry.lunchEnd}` : '-';
-                
-                csv += `${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)},"${comment}"\n`;
+                csv += `${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes || 0},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes || 0},${entry.leaveTaken || 0},${entry.approvalStatus || '-'},${entry.approver || '-'},"${comment}"\n`;
             });
 
             downloadCSV(csv, `leave_tracker_${emp.employeeId}.csv`);
         }
 
         function exportAllEmployeesCSV() {
-            let csv = 'Employee,ID,Lunch Group,Date,Location,Arrival,Lunch Time,Lunch Late,Manager Approval,Status,Late,Lunch Deduct,Mins,Leave,Balance,Comments\n';
+            let csv = 'Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nEmployee,ID,Lunch Group,Date,Location,Arrival,Lunch Time,Lunch Late,Manager Approval,Status,Late,Lunch Deduct,Mins,Leave,Balance,Approval,Approver,Comments\n';
 
             employees.forEach(emp => {
                 const empEntries = getEmployeeEntries(emp.id);
@@ -947,7 +1097,7 @@
                     const comment = (entry.comments || '').replace(/"/g, '""');
                     const lunchTime = (entry.lunchStart && entry.lunchEnd) ? `${entry.lunchStart}-${entry.lunchEnd}` : '-';
                     
-                    csv += `${emp.name},${emp.employeeId},${emp.lunchGroup || 'A'},${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes},${entry.leaveTaken.toFixed(2)},${(runningMinutes / 480).toFixed(2)},"${comment}"\n`;
+                    csv += `${emp.name},${emp.employeeId},${emp.lunchGroup || 'A'},${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes || 0},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes || 0},${entry.leaveTaken || 0},${(runningMinutes/480).toFixed(2)},${entry.approvalStatus || '-'},${entry.approver || '-'},"${comment}"\n`;
                 });
             });
 
