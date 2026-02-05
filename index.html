@@ -28,14 +28,14 @@
         .card .value { font-size: 36px; font-weight: bold; color: #667eea; }
         .card .subtext { color: #999; font-size: 12px; margin-top: 5px; }
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab { flex: 1; min-width: 150px; padding: 15px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; box-shadow: 0 5[...]
+        .tab { flex: 1; min-width: 150px; padding: 15px; background: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; }
         .tab.active { background: #667eea; color: white; box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
         .content { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
         .section { display: none; }
         .section.active { display: block; }
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; }
-        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border 0.3s; font-famil[...]
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; transition: border 0.3s; }
         .input-group textarea { min-height: 80px; resize: vertical; }
         .input-group input:focus, .input-group select:focus, .input-group textarea:focus { outline: none; border-color: #667eea; }
         .location-badge { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #e3f2fd; color: #1976d2; }
@@ -47,7 +47,7 @@
         .late-indicator.on-time { background: #d4edda; color: #155724; display: block; }
         .late-indicator.late { background: #fff3cd; color: #856404; display: block; }
         .late-indicator.very-late { background: #f8d7da; color: #721c24; display: block; }
-        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; margin-right: 10px; ma[...]
+        .btn { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: 600; transition: all 0.3s; margin-right: 10px; }
         .btn:hover { background: #5568d3; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3); }
         .btn-secondary { background: #e0e0e0; color: #333; }
         .btn-secondary:hover { background: #d0d0d0; }
@@ -120,8 +120,8 @@
                         <div class="rules-box">
                             <h4>📋 Accumulation Rules:</h4>
                             <ul>
-                                <li><strong>On time</strong> (by 07:55 AM): +45 minutes</li>
-                                <li><strong>Late</strong> (after 07:55 AM): 45 minutes - late minutes</li>
+                                <li><strong>On time</strong> (by 07:45 AM): +45 minutes</li>
+                                <li><strong>Late</strong> (after 07:45 AM): 45 minutes - late minutes</li>
                                 <li><strong>Sick days</strong>: No accumulation</li>
                                 <li><strong>Example:</strong> Arrive 08:15 AM (30 min late) = 45 - 30 = 15 minutes accumulated</li>
                             </ul>
@@ -166,9 +166,9 @@
                 <h2 style="margin-bottom: 20px; color: #667eea;">Record Daily Attendance</h2>
                 <div class="input-group"><label>Employee</label><select id="entryEmployee"></select></div>
                 <div class="input-group"><label>Date (From)</label><input type="date" id="workDate" /></div>
-                <div class="input-group" id="dateRangeGroup" style="display: none;"><label>Leave Period (To Date)</label><input type="date" id="toDate" /><small style="color: #666; margin-top: 5px; di[...]
-                <div class="input-group"><label><input type="checkbox" id="menlynOffice" onchange="toggleLocation()" style="width: auto; margin-right: 8px;" checked />Working at Menlyn Office</label><[...]
-                <div class="input-group" id="locationGroup" style="display: none;"><label>Location (Out of Office)</label><select id="location"><option value="KZN">KZN</option><option value="GP">GP</o[...]
+                <div class="input-group" id="dateRangeGroup" style="display: none;"><label>Leave Period (To Date)</label><input type="date" id="toDate" /><small style="color: #666; margin-top: 5px; display:block;">Use To Date for multi-day leaves</small></div>
+                <div class="input-group"><label><input type="checkbox" id="menlynOffice" onchange="toggleLocation()" style="width: auto; margin-right: 8px;" checked />Working at Menlyn Office</label></div>
+                <div class="input-group" id="locationGroup" style="display: none;"><label>Location (Out of Office)</label><select id="location"><option value="KZN">KZN</option><option value="GP">GP</option><option value="WC">WC</option></select></div>
                 <div class="input-group" id="arrivalGroup"><label>Arrival Time (Official: 07:45 AM)</label><input type="time" id="arrivalTime" value="07:45" onchange="calculateLate()" /></div>
                 <div id="lateIndicator" class="late-indicator"></div>
                 
@@ -203,15 +203,15 @@
                 
                 <div id="lunchIndicator" class="late-indicator" style="display: none;"></div>
                 
-                <div class="input-group"><label>Status</label><select id="dayStatus" onchange="toggleArrivalTime()"><option value="worked">Worked</option><option value="sick">Sick Leave</option><optio[...]
-                <div class="input-group" id="leaveAmountGroup" style="display: none;"><label>Leave Days Per Day</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1" /><sm[...]
+                <div class="input-group"><label>Status</label><select id="dayStatus" onchange="toggleArrivalTime()"><option value="worked">Worked</option><option value="sick">Sick Leave</option><option value="annual">Annual Leave</option><option value="study">Study Leave</option><option value="family">Family Leave</option></select></div>
+                <div class="input-group" id="leaveAmountGroup" style="display: none;"><label>Leave Days Per Day</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1" /><small style="color:#666; display:block;">Set how many days each entry deducts (0.5 for half-day)</small></div>
                 <div class="input-group"><label>Comments / Notes (Optional)</label><textarea id="comments" placeholder="Add any notes..."></textarea></div>
                 <button class="btn" onclick="addEntry()">Add Entry</button>
             </div>
             
             <div id="monthly" class="section">
                 <h2 style="margin-bottom: 20px; color: #667eea;">Monthly Summary - <span id="monthlyEmployeeName"></span></h2>
-                <table><thead><tr><th>Month</th><th>Days Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins</th><th>Days</th></tr><[...]
+                <table><thead><tr><th>Month</th><th>Days Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins</th><th>Days</th></tr></thead><tbody id="monthlyBody"></tbody></table>
                 <div class="export-section">
                     <h3 style="margin-bottom: 15px; color: #667eea;">Export Data</h3>
                     <div class="report-note">Reports must be beautiful and nice. The exported CSV includes a header that notes it was generated by Tsiku Leave Tracker.</div>
@@ -222,7 +222,7 @@
             
             <div id="balance" class="section">
                 <h2 style="margin-bottom: 20px; color: #667eea;">Balance Details - <span id="balanceEmployeeName"></span></h2>
-                <div style="overflow-x: auto;"><table><thead><tr><th>Date</th><th>Location</th><th>Arrival</th><th>Lunch Period</th><th>Status</th><th>Late</th><th>Lunch Deduct</th><th>Mins</th><th>Le[...]
+                <div style="overflow-x: auto;"><table><thead><tr><th>Date</th><th>Location</th><th>Arrival</th><th>Lunch Period</th><th>Status</th><th>Late</th><th>Lunch Deduct</th><th>Mins</th><th>Leav</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
             </div>
             
             <div id="employees" class="section">
@@ -309,7 +309,7 @@
 
     <script>
         const OFFICIAL_ARRIVAL = "07:45";
-        const GRACE_PERIOD_MINUTES = 10;
+        const GRACE_PERIOD_MINUTES = 0; // Anything after 07:45 is late
         const DAILY_ACCUMULATION_MINUTES = 45;
         
         const LUNCH_PERIODS = {
@@ -357,11 +357,12 @@
 
         function populateEmployeeSelectors() {
             [document.getElementById('employeeSelect'), document.getElementById('entryEmployee')].forEach(select => {
-                select.innerHTML = '';
+                select.innerHTML = ''; 
                 employees.forEach(emp => {
                     const option = document.createElement('option');
                     option.value = emp.id;
-                    option.textContent = `${emp.name} (${emp.employeeId}) - Group ${emp.lunchGroup || 'A'}`;
+                    option.textContent = \
+                        `${emp.name} (${emp.employeeId}) - Group ${emp.lunchGroup || 'A'}`;
                     select.appendChild(option);
                 });
                 select.value = currentEmployeeId;
@@ -393,14 +394,14 @@
             const arrivalTime = document.getElementById('arrivalTime').value;
             if (!arrivalTime) return;
             
-            const lateMinutes = Math.round((new Date('2000-01-01 ' + arrivalTime) - new Date('2000-01-01 07:45')) / 60000);
+            const lateMinutes = Math.round((new Date('2000-01-01 ' + arrivalTime) - new Date('2000-01-01 ' + OFFICIAL_ARRIVAL)) / 60000);
             const indicator = document.getElementById('lateIndicator');
             
-            if (lateMinutes <= 10) {
+            if (lateMinutes <= GRACE_PERIOD_MINUTES) {
                 indicator.className = 'late-indicator on-time';
                 indicator.innerHTML = '✅ <strong>On Time!</strong> Will accumulate full 45 minutes';
             } else {
-                const accumulated = 45 - lateMinutes;
+                const accumulated = DAILY_ACCUMULATION_MINUTES - lateMinutes;
                 if (accumulated > 0) {
                     indicator.className = 'late-indicator late';
                     indicator.innerHTML = `⚠️ <strong>${lateMinutes} min late.</strong> Will accumulate: ${accumulated} min`;
@@ -448,7 +449,7 @@
             } else {
                 const remainingAccumulation = DAILY_ACCUMULATION_MINUTES - lateMinutes;
                 indicator.className = 'late-indicator very-late';
-                indicator.innerHTML = `❌ <strong>${lateMinutes} min late return!</strong> Will deduct ${lateMinutes} min from daily 45 min. Final accumulation: ${remainingAccumulation} min<br><stron[...]
+                indicator.innerHTML = `❌ <strong>${lateMinutes} min late return!</strong> Will deduct ${lateMinutes} min from daily 45 min. Final accumulation: ${remainingAccumulation} min`;
                 indicator.style.display = 'block';
             }
         }
@@ -641,7 +642,9 @@
             }
             
             // Combine lunch reason with existing comments
-            const fullComments = `[LUNCH LATE RETURN - Approved by: ${managerName}]\nReason: ${lunchReason}\n${pendingEntry.comments ? '\n' + pendingEntry.comments : ''}`;
+            const fullComments = `[LUNCH LATE RETURN - Approved by: ${managerName}]
+Reason: ${lunchReason}
+${pendingEntry.comments ? '\n' + pendingEntry.comments : ''}`;
             
             processEntry(
                 pendingEntry.employeeId, pendingEntry.date, pendingEntry.status,
@@ -674,12 +677,12 @@
             
             if (status === 'worked') {
                 // Calculate arrival late penalty
-                const late = Math.max(0, Math.round((new Date('2000-01-01 ' + arrivalTime) - new Date('2000-01-01 07:45')) / 60000));
-                if (late <= 10) {
-                    accumulatedMinutes = 45;
+                const late = Math.max(0, Math.round((new Date('2000-01-01 ' + arrivalTime) - new Date('2000-01-01 ' + OFFICIAL_ARRIVAL)) / 60000));
+                if (late <= GRACE_PERIOD_MINUTES) {
+                    accumulatedMinutes = DAILY_ACCUMULATION_MINUTES;
                 } else {
                     lateMinutes = late;
-                    accumulatedMinutes = 45 - late;
+                    accumulatedMinutes = DAILY_ACCUMULATION_MINUTES - late;
                 }
                 
                 // Deduct lunch late minutes from accumulation
@@ -742,8 +745,7 @@
             });
 
             // Sick accrual calculation:
-            // As requested: 6 sick days per year; accrual = 1 sick day per 2 months worked (≈ 40 work days).
-            // We'll calculate using worked days count: 1 sick day per 40 worked days, but cap at 6 for the current year.
+            // As requested: 6 sick days per year; accrual = 1 sick day per ~40 worked days, capped at 6 days per year.
             const workedDaysThisYear = empEntries.filter(e => e.status === 'worked' && new Date(e.date).getFullYear() === currentYear).length;
             const sickAccruedThisYear = Math.min(6, Math.floor(workedDaysThisYear / 40)); // 1 per 40 worked days, max 6/year
 
@@ -767,7 +769,7 @@
                 if (entry.status === 'worked') {
                     monthlyData[month].worked++;
                     monthlyData[month].accumulatedMinutes += entry.accumulatedMinutes;
-                    if (entry.lateMinutes > 10) monthlyData[month].lateDays++;
+                    if (entry.lateMinutes > 0) monthlyData[month].lateDays++;
                     if (entry.lunchLateMinutes > 0) monthlyData[month].lunchViolations++;
                 } else if (entry.status === 'sick') monthlyData[month].sick++;
                 else if (entry.status === 'annual') monthlyData[month].annual += entry.leaveTaken;
@@ -825,7 +827,7 @@
                     }
 
                     const commentDisplay = entry.comments ?
-                        `<span class="comment-cell" onclick="showComment('${entry.comments.replace(/'/g, "\\'").replace(/\n/g, "\\n")}')">${entry.comments.substring(0, 30)}${entry.comments.length > 30 ? '[...]' : ''}</span>` :
+                        `<span class="comment-cell" onclick="showComment('${entry.comments.replace(/'/g, "\\'\").replace(/\n/g, "\\n")}')">${entry.comments.substring(0, 30)}${entry.comments.length > 30 ? '[...]' : ''}</span>` :
                         '<span style="color: #ccc;">-</span>';
 
                     // Approval badge for leave entries
@@ -988,7 +990,7 @@
             document.getElementById('arrivalTime').value = entry.arrivalTime || '07:45';
             
             // Extract original comments without lunch approval info
-            let originalComments = entry.comments || '';
+            let originalComments = entry.comments || ''; 
             if (originalComments.includes('[LUNCH LATE RETURN')) {
                 const parts = originalComments.split('\n\n');
                 originalComments = parts.length > 1 ? parts[1] : '';
@@ -1079,47 +1081,44 @@
                 runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
                 const comment = (entry.comments || '').replace(/"/g, '""');
                 const lunchTime = (entry.lunchStart && entry.lunchEnd) ? `${entry.lunchStart}-${entry.lunchEnd}` : '-';
-                csv += `${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes || 0},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes || 0},${entry.leaveTaken || 0},${entry.approvalStatus || '-'},${entry.approver || '-'},"${comment}"\n`;
+                csv += `${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes || 0},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes || 0},${entry.leaveTaken || 0},${entry.approvalStatus || '-'},${entry.approver || '-'},${comment}\n`;
             });
-
-            downloadCSV(csv, `leave_tracker_${emp.employeeId}.csv`);
+            
+            // Trigger CSV download using data URI
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Leave_Entries_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
         function exportAllEmployeesCSV() {
-            let csv = 'Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nEmployee,ID,Lunch Group,Date,Location,Arrival,Lunch Time,Lunch Late,Manager Approval,Status,Late,Lunch Deduct,Mins,Leave,Balance,Approval,Approver,Comments\n';
-
-            employees.forEach(emp => {
+            const csvHeader = `Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nDate,Employee,Leave Status,Attendance\n`;
+            const csvBody = employees.map(emp => {
                 const empEntries = getEmployeeEntries(emp.id);
-                let runningMinutes = 0;
+                const totalWorked = empEntries.filter(e => e.status === 'worked').length;
+                const totalSick = empEntries.filter(e => e.status === 'sick').length;
+                const totalAnnual = empEntries.filter(e => e.status === 'annual').reduce((sum, e) => sum + e.leaveTaken, 0);
+                const totalStudy = empEntries.filter(e => e.status === 'study').reduce((sum, e) => sum + e.leaveTaken, 0);
+                const totalFamily = empEntries.filter(e => e.status === 'family').reduce((sum, e) => sum + e.leaveTaken, 0);
+                return `${emp.name},${totalWorked},${totalSick},${totalAnnual.toFixed(2)},${totalStudy.toFixed(2)},${totalFamily.toFixed(2)}\n`;
+            }).join('');
+            const csvContent = csvHeader + csvBody;
 
-                empEntries.forEach(entry => {
-                    runningMinutes += entry.accumulatedMinutes - (entry.leaveTaken * 480);
-                    const comment = (entry.comments || '').replace(/"/g, '""');
-                    const lunchTime = (entry.lunchStart && entry.lunchEnd) ? `${entry.lunchStart}-${entry.lunchEnd}` : '-';
-                    
-                    csv += `${emp.name},${emp.employeeId},${emp.lunchGroup || 'A'},${entry.date},${entry.location || '-'},${entry.arrivalTime || '-'},${lunchTime},${entry.lunchLateMinutes || 0},${entry.managerApproval || '-'},${entry.status},${entry.lateMinutes || 0},${entry.lunchLateMinutes || 0},${entry.accumulatedMinutes || 0},${entry.leaveTaken || 0},${(runningMinutes/480).toFixed(2)},${entry.approvalStatus || '-'},${entry.approver || '-'},"${comment}"\n`;
-                });
-            });
-
-            downloadCSV(csv, 'leave_tracker_all_employees.csv');
-        }
-
-        function downloadCSV(content, filename) {
-            const blob = new Blob([content], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
+            a.setAttribute('href', url);
+            a.setAttribute('download', `All_Employees_Leave_Entries_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(a);
             a.click();
-            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-            setDefaultDate();
-            toggleLocation();
-            updateAllDisplays();
-        });
     </script>
 </body>
 </html>
