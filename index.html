@@ -4,641 +4,936 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tsiku Leave Tracker</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root{
-      --brand-1:#667eea;
-      --brand-2:#764ba2;
-      --muted:#666;
-      --card-bg:#ffffff;
-      --page-bg:linear-gradient(135deg,var(--brand-1) 0%,var(--brand-2) 100%);
-      --shadow:0 10px 30px rgba(0,0,0,0.12);
+      --brand:#2563eb;
+      --brand-dark:#1d4ed8;
+      --brand-light:#eff6ff;
+      --accent:#f59e0b;
+      --accent-light:#fffbeb;
+      --success:#16a34a;
+      --success-light:#dcfce7;
+      --danger:#dc2626;
+      --danger-light:#fee2e2;
+      --warn:#d97706;
+      --warn-light:#fef3c7;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --card:#ffffff;
+      --page:#f8fafc;
+      --text:#111827;
+      --shadow-sm:0 1px 3px rgba(0,0,0,0.07),0 1px 2px rgba(0,0,0,0.05);
+      --shadow:0 4px 16px rgba(0,0,0,0.08);
+      --shadow-lg:0 10px 40px rgba(0,0,0,0.12);
+      --radius:12px;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-      background:var(--page-bg);color:#222;min-height:100vh;padding:28px;
-      -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
-    }
-    .container{max-width:1200px;margin:0 auto}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--page);color:var(--text);-webkit-font-smoothing:antialiased}
 
-    .header{background:var(--card-bg);padding:20px;border-radius:12px;box-shadow:var(--shadow);margin-bottom:20px}
-    .header-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .header-left{display:flex;gap:16px;align-items:center}
-    #logo{height:64px;width:auto}
-    h1{color:var(--brand-1);font-size:22px;margin:0}
-    .info{color:var(--muted);font-size:13px;margin-top:6px}
+    /* ── Layout ── */
+    .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+    .sidebar{background:#111827;padding:24px 0;display:flex;flex-direction:column;gap:4px;position:sticky;top:0;height:100vh;overflow-y:auto}
+    .sidebar-logo{padding:0 20px 20px;border-bottom:1px solid rgba(255,255,255,0.1);margin-bottom:8px}
+    .sidebar-logo h1{color:#fff;font-size:16px;font-weight:700;letter-spacing:-.3px}
+    .sidebar-logo p{color:#9ca3af;font-size:11px;margin-top:2px}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:#9ca3af;font-size:13px;font-weight:500;cursor:pointer;border-radius:0;transition:all .15s;border-left:3px solid transparent}
+    .nav-item:hover{color:#fff;background:rgba(255,255,255,0.05)}
+    .nav-item.active{color:#fff;background:rgba(37,99,235,0.2);border-left-color:var(--brand)}
+    .nav-item svg{width:16px;height:16px;flex-shrink:0}
+    .nav-section{padding:16px 20px 6px;font-size:10px;font-weight:700;color:#4b5563;text-transform:uppercase;letter-spacing:.8px}
 
-    .rules-box,.lunch-box{background:#f7f9ff;padding:12px;border-radius:8px;border-left:4px solid var(--brand-1);margin-top:12px;color:#333}
-    .lunch-box{background:#fff8e6;border-left-color:#ffc107}
+    .main{padding:28px 32px;overflow-y:auto}
+    .page{display:none}
+    .page.active{display:block}
 
-    .employee-selector{display:flex;gap:10px;align-items:center}
-    select,input,textarea,button{font-family:inherit}
-    select,input[type=time],input[type=date],textarea{padding:10px;border-radius:8px;border:1px solid #e5e7eb}
+    /* ── Top bar ── */
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+    .topbar h2{font-size:22px;font-weight:700;color:var(--text)}
+    .topbar p{font-size:13px;color:var(--muted);margin-top:2px}
+    .emp-switcher{display:flex;align-items:center;gap:10px}
+    .emp-switcher label{font-size:13px;font-weight:600;color:var(--muted)}
 
-    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:18px 0}
-    .card{background:var(--card-bg);padding:18px;border-radius:12px;box-shadow:var(--shadow);text-align:center}
-    .card h3{margin:0;color:#666;font-size:12px;text-transform:uppercase}
-    .card .value{font-weight:700;font-size:28px;color:var(--brand-1);margin-top:6px}
-    .card .subtext{font-size:12px;color:#888;margin-top:6px}
+    /* ── Cards ── */
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+    .card{background:var(--card);padding:18px;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border)}
+    .card-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+    .card-value{font-size:30px;font-weight:700;color:var(--brand);margin:6px 0 2px;font-family:'DM Mono',monospace}
+    .card-sub{font-size:11px;color:var(--muted)}
 
-    .tabs{display:flex;gap:10px;margin-bottom:18px}
-    .tab{background:var(--card-bg);padding:12px 18px;border-radius:10px;border:1px solid #eef2ff;cursor:pointer;font-weight:600;color:#333}
-    .tab.active{background:var(--brand-1);color:white}
+    /* ── Form ── */
+    .form-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid var(--border);padding:24px}
+    .form-card h3{font-size:16px;font-weight:700;margin-bottom:18px;color:var(--text)}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .form-grid.single{grid-template-columns:1fr}
+    .fg{display:flex;flex-direction:column;gap:6px}
+    .fg label{font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.4px}
+    .fg input,.fg select,.fg textarea{padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;transition:border .15s}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--brand)}
+    .fg textarea{min-height:80px;resize:vertical}
+    .fg .hint{font-size:11px;color:var(--muted)}
+    .radio-group{display:flex;gap:16px;margin-top:4px}
+    .radio-group label{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;color:var(--text)}
+    .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700}
+    .pill.on-time{background:var(--success-light);color:var(--success)}
+    .pill.late{background:var(--warn-light);color:var(--warn)}
+    .pill.very-late{background:var(--danger-light);color:var(--danger)}
+    .indicator{margin-top:6px;display:none}
+    .indicator.show{display:block}
 
-    .content{background:var(--card-bg);padding:20px;border-radius:12px;box-shadow:var(--shadow)}
-    .section{display:none}
-    .section.active{display:block}
-    .input-group{margin-bottom:14px}
-    .input-group label{display:block;font-weight:600;margin-bottom:6px;color:#333;font-size:13px}
-    textarea{min-height:90px}
+    /* ── Buttons ── */
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:all .15s}
+    .btn-primary{background:var(--brand);color:#fff}.btn-primary:hover{background:var(--brand-dark)}
+    .btn-secondary{background:var(--page);color:var(--text);border:1.5px solid var(--border)}.btn-secondary:hover{background:var(--border)}
+    .btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#15803d}
+    .btn-danger{background:var(--danger);color:#fff}.btn-danger:hover{background:#b91c1c}
+    .btn-warn{background:var(--warn);color:#fff}
+    .btn-sm{padding:6px 12px;font-size:12px}
+    .btn-row{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
 
-    .location-badge{display:inline-block;padding:4px 10px;border-radius:12px;background:#e6f0ff;color:#0b63b3;font-weight:700}
-    .late-indicator{padding:10px;border-radius:6px;margin-top:8px;display:none}
-    .late-indicator.on-time{background:#e8f6ef;color:#155724;display:block}
-    .late-indicator.late{background:#fff7e6;color:#856404;display:block}
-    .late-indicator.very-late{background:#fdecea;color:#721c24;display:block}
+    /* ── Table ── */
+    .table-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);background:var(--card)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:11px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);background:#f9fafb;border-bottom:1px solid var(--border)}
+    td{padding:11px 14px;font-size:13px;border-bottom:1px solid #f3f4f6;vertical-align:middle}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#fafbff}
+    .badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700}
+    .badge-blue{background:var(--brand-light);color:var(--brand)}
+    .badge-green{background:var(--success-light);color:var(--success)}
+    .badge-red{background:var(--danger-light);color:var(--danger)}
+    .badge-yellow{background:var(--warn-light);color:var(--warn)}
+    .badge-gray{background:#f3f4f6;color:#6b7280}
 
-    .btn{background:var(--brand-1);color:white;padding:10px 16px;border-radius:8px;border:none;cursor:pointer}
-    .btn.btn-secondary{background:#f1f5f9;color:#111}
-    .btn.btn-danger{background:#dc3545}
-    .btn-row{display:flex;gap:10px}
+    /* ── Modal ── */
+    .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;z-index:9000;backdrop-filter:blur(2px)}
+    .modal.open{display:flex}
+    .modal-box{background:var(--card);border-radius:16px;padding:28px;max-width:500px;width:92%;box-shadow:var(--shadow-lg);animation:popIn .2s ease}
+    @keyframes popIn{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+    .modal-box h3{font-size:18px;font-weight:700;margin-bottom:16px}
+    .modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);margin-top:-4px}
+    .modal-body{display:flex;flex-direction:column;gap:14px}
+    .modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+    .info-row{display:flex;justify-content:space-between;padding:8px 12px;background:var(--page);border-radius:8px;font-size:13px}
+    .info-row span:first-child{font-weight:600;color:var(--muted)}
 
-    table{width:100%;border-collapse:collapse;margin-top:14px}
-    th,td{padding:10px;text-align:left;border-bottom:1px solid #f3f4f6}
-    th{background:#fbfbff;color:var(--brand-1);font-weight:700}
+    /* ── Report sections ── */
+    .report-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+    .report-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .report-filters select,.report-filters input{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+    .summary-strip{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+    .strip-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;flex:1;min-width:120px}
+    .strip-item .sl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase}
+    .strip-item .sv{font-size:20px;font-weight:700;color:var(--brand);font-family:'DM Mono',monospace;margin-top:4px}
 
-    .employee-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:12px}
-    .employee-card{padding:14px;border-radius:10px;background:#fbfbff;border:1px solid #eef2ff}
+    /* ── Employee cards ── */
+    .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px}
+    .emp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+    .emp-card h4{font-size:15px;font-weight:700;color:var(--brand)}
+    .emp-card .emp-meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .emp-stats{display:flex;gap:8px;margin-top:12px}
+    .emp-stat{flex:1;background:var(--page);border-radius:8px;padding:10px;text-align:center}
+    .emp-stat .es-l{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase}
+    .emp-stat .es-v{font-size:18px;font-weight:700;color:var(--brand);font-family:'DM Mono',monospace;margin-top:2px}
 
-    .modal{display:none;position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(0,0,0,0.45);align-items:center;justify-content:center;z-index:2000}
-    .modal.active{display:flex}
-    .modal-content{background:var(--card-bg);padding:18px;border-radius:12px;max-width:520px;width:92%}
+    /* ── Rules box ── */
+    .rules-box{background:var(--brand-light);border-left:4px solid var(--brand);border-radius:8px;padding:14px;font-size:13px;color:#1e40af;margin-top:12px}
+    .rules-box strong{display:block;margin-bottom:8px;font-size:14px}
+    .rules-box li{margin-left:18px;margin-bottom:4px}
 
-    .approval-badge{display:inline-block;padding:6px 10px;border-radius:6px;font-weight:700}
-    .approval-badge.approved{background:#dff3e6;color:#14632a}
-    .approval-badge.rejected{background:#fdecea;color:#7a1b1b}
-    .approval-badge.pending{background:#fff4d9;color:#7a5a00}
+    /* ── Lunch pending list ── */
+    .pending-item{background:var(--warn-light);border:1px solid #fde68a;border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .pending-item .pi-info{font-size:13px}
+    .pending-item .pi-info strong{display:block;font-size:14px;color:var(--text)}
+    .pending-item .pi-info span{color:var(--muted)}
+    .pending-actions{display:flex;gap:8px}
 
-    /* responsive tweaks */
-    @media (max-width:720px){
-      .header-top{flex-direction:column;align-items:flex-start}
-      .employee-selector{width:100%;justify-content:space-between}
+    @media(max-width:860px){
+      .app{grid-template-columns:1fr}
+      .sidebar{height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:12px;gap:2px}
+      .sidebar-logo{border:none;margin:0;padding:0 8px}
+      .nav-section{display:none}
+      .nav-item{padding:8px 12px;border-left:none;border-bottom:3px solid transparent;font-size:12px}
+      .nav-item.active{border-bottom-color:var(--brand);border-left:none}
+      .form-grid{grid-template-columns:1fr}
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <div class="header-top">
-        <div class="header-left">
-          <img id="logo" src="assets/logo.png" alt="Tsiku logo" onerror="this.style.display='none'"/>
-          <div>
-            <h1>Tsiku Leave Tracker</h1>
-            <div class="info">Official Arrival: 07:45 AM | Accumulation: 45 minutes per day</div>
-            <div class="rules-box">
-              <strong>Accumulation rules</strong>
-              <ul style="margin:8px 0 0 18px;color:#444">
-                <li>On time (by 07:45) = +45 min</li>
-                <li>Late (after 07:45) = 45 - late minutes</li>
-                <li>Sick days: no accumulation</li>
-              </ul>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <h1>📋 Tsiku</h1>
+      <p>Leave Tracker System</p>
+    </div>
+    <span class="nav-section">Attendance</span>
+    <div class="nav-item active" onclick="showPage('entry')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Record Entry
+    </div>
+    <div class="nav-item" onclick="showPage('pending')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m9-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      Lunch Approvals <span id="pendingCount" style="margin-left:auto;background:#f59e0b;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;display:none">0</span>
+    </div>
+    <span class="nav-section">Reports</span>
+    <div class="nav-item" onclick="showPage('monthly')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+      Monthly Summary
+    </div>
+    <div class="nav-item" onclick="showPage('weekly')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Weekly Report
+    </div>
+    <div class="nav-item" onclick="showPage('lunchreport')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+      Lunch Report
+    </div>
+    <div class="nav-item" onclick="showPage('balance')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Balance Details
+    </div>
+    <span class="nav-section">Admin</span>
+    <div class="nav-item" onclick="showPage('employees')">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
+      All Employees
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- ENTRY PAGE -->
+    <div id="page-entry" class="page active">
+      <div class="topbar">
+        <div><h2>Record Daily Attendance</h2><p>Official start: 07:45 AM · 45 min accumulation per day</p></div>
+        <div class="emp-switcher">
+          <label>Employee:</label>
+          <select id="employeeSelect" onchange="switchEmployee()" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px"></select>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addEmpModal')">+ Add Employee</button>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card"><div class="card-label">Total Balance</div><div class="card-value" id="totalBalance">0.00</div><div class="card-sub">days</div></div>
+        <div class="card"><div class="card-label">This Month</div><div class="card-value" id="monthAccumulated">0.00</div><div class="card-sub">days accrued</div></div>
+        <div class="card"><div class="card-label">Days Worked</div><div class="card-value" id="totalWorked">0</div><div class="card-sub">total days</div></div>
+        <div class="card"><div class="card-label">Sick Accrued</div><div class="card-value" id="sickAccrued">0</div><div class="card-sub">days (year)</div></div>
+        <div class="card"><div class="card-label">Employees</div><div class="card-value" id="totalEmployees">0</div><div class="card-sub">registered</div></div>
+      </div>
+
+      <div class="rules-box">
+        <strong>📌 Accumulation Rules</strong>
+        <ul>
+          <li>On time (by 07:45) = +45 minutes</li>
+          <li>Late arrival = 45 − late minutes (min 0)</li>
+          <li>Late lunch return = deduct extra minutes (manager approval required)</li>
+          <li>Sick days = no accumulation</li>
+        </ul>
+      </div>
+
+      <div class="form-card" style="margin-top:20px">
+        <h3>Add Attendance Entry</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Employee</label><select id="entryEmployee"></select></div>
+          <div class="fg"><label>Date</label><input type="date" id="workDate"/></div>
+          <div class="fg"><label>Status</label><select id="dayStatus" onchange="toggleStatus()">
+            <option value="worked">Worked</option>
+            <option value="sick">Sick Leave</option>
+            <option value="annual">Annual Leave</option>
+            <option value="study">Study Leave</option>
+            <option value="family">Family Leave</option>
+          </select></div>
+          <div class="fg" id="leaveAmountGroup" style="display:none"><label>Leave Days</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1"/></div>
+        </div>
+
+        <div id="workedFields">
+          <div class="form-grid" style="margin-top:14px">
+            <div class="fg">
+              <label>Arrival Time</label>
+              <input type="time" id="arrivalTime" value="07:45" onchange="calcLate()"/>
+              <div id="lateIndicator" class="indicator"></div>
+            </div>
+            <div class="fg">
+              <label>Lunch Group</label>
+              <div class="radio-group">
+                <label><input type="radio" name="lunchGroup" value="A" checked onchange="calcLunch()"/> Group A (12:00–13:00)</label>
+                <label><input type="radio" name="lunchGroup" value="B" onchange="calcLunch()"/> Group B (13:00–14:00)</label>
+              </div>
+            </div>
+            <div class="fg">
+              <label>Lunch Start</label>
+              <input type="time" id="lunchStart" onchange="calcLunch()"/>
+            </div>
+            <div class="fg">
+              <label>Lunch End</label>
+              <input type="time" id="lunchEnd" onchange="calcLunch()"/>
+              <div id="lunchIndicator" class="indicator"></div>
             </div>
           </div>
         </div>
-        <div class="employee-selector">
-          <label style="font-weight:700;color:#333">View Employee:</label>
-          <select id="employeeSelect" onchange="switchEmployee()"></select>
-          <button class="btn" onclick="openAddEmployeeModal()">+ Add Employee</button>
+
+        <div class="fg" style="margin-top:14px"><label>Comments</label><textarea id="comments" placeholder="Optional notes..."></textarea></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addEntry()">Save Entry</button>
+          <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
         </div>
       </div>
     </div>
 
-    <div class="cards">
-      <div class="card"><h3>Total Balance</h3><div class="value" id="totalBalance">0.00</div><div class="subtext">days</div></div>
-      <div class="card"><h3>This Month</h3><div class="value" id="monthAccumulated">0.00</div><div class="subtext">days</div></div>
-      <div class="card"><h3>Days Worked</h3><div class="value" id="totalWorked">0</div><div class="subtext">days</div></div>
-      <div class="card"><h3>Total Employees</h3><div class="value" id="totalEmployees">0</div><div class="subtext">registered</div></div>
-      <div class="card"><h3>Sick Accrued (Year)</h3><div class="value" id="sickAccrued">0</div><div class="subtext">days</div></div>
+    <!-- PENDING LUNCH APPROVALS PAGE -->
+    <div id="page-pending" class="page">
+      <div class="topbar"><div><h2>Lunch Approvals</h2><p>Extended lunch returns requiring manager action</p></div></div>
+      <div id="pendingList">
+        <p style="color:var(--muted);font-size:14px">✅ No pending lunch approvals.</p>
+      </div>
     </div>
 
-    <div class="tabs">
-      <button class="tab active" onclick="showTab(event,'entry')">Record Entry</button>
-      <button class="tab" onclick="showTab(event,'monthly')">Monthly Summary</button>
-      <button class="tab" onclick="showTab(event,'balance')">Balance Details</button>
-      <button class="tab" onclick="showTab(event,'employees')">All Employees</button>
-    </div>
-
-    <div class="content">
-      <div id="entry" class="section active">
-        <h2 style="color:var(--brand-1);margin-top:0">Record Daily Attendance</h2>
-        <div class="input-group"><label>Employee</label><select id="entryEmployee"></select></div>
-        <div class="input-group"><label>Date</label><input type="date" id="workDate"/></div>
-        <div class="input-group" id="arrivalGroup"><label>Arrival Time (07:45)</label><input type="time" id="arrivalTime" value="07:45" onchange="calculateLate()"/></div>
-        <div id="lateIndicator" class="late-indicator"></div>
-
-        <div class="input-group"><label>Lunch Group</label>
-          <div style="display:flex;gap:12px">
-            <label><input type="radio" name="lunchGroup" value="A" checked/> Group A (12:00-13:00)</label>
-            <label><input type="radio" name="lunchGroup" value="B"/> Group B (13:00-14:00)</label>
-          </div>
+    <!-- MONTHLY PAGE -->
+    <div id="page-monthly" class="page">
+      <div class="topbar"><div><h2>Monthly Summary</h2><p>Month-by-month attendance breakdown</p></div></div>
+      <div class="report-header">
+        <div class="report-filters">
+          <label style="font-size:13px;font-weight:600">Employee:</label>
+          <select id="monthlyEmpFilter" onchange="updateMonthly()"></select>
         </div>
-
-        <div class="input-group" id="lunchTimeGroup"><label>Lunch Start / End</label><div style="display:flex;gap:8px"><input type="time" id="lunchStart" onchange="calculateLunchPenalty()"/><input type="time" id="lunchEnd" onchange="calculateLunchPenalty()"/></div></div>
-        <div id="lunchIndicator" class="late-indicator"></div>
-
-        <div class="input-group"><label>Status</label><select id="dayStatus" onchange="toggleArrivalTime()"><option value="worked">Worked</option><option value="sick">Sick Leave</option><option value="annual">Annual Leave</option><option value="study">Study Leave</option><option value="family">Family Leave</option></select></div>
-        <div class="input-group" id="leaveAmountGroup" style="display:none"><label>Leave Days</label><input type="number" id="leaveTaken" step="0.5" value="1" min="0.5" max="1"/></div>
-        <div class="input-group"><label>Comments</label><textarea id="comments" placeholder="Optional"></textarea></div>
-        <div class="btn-row"><button class="btn" onclick="addEntry()">Add Entry</button><button class="btn btn-secondary" onclick="resetForm()">Reset</button></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="exportMonthlyCSV()">⬇ CSV</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportAllCSV()">⬇ All Employees CSV</button>
+        </div>
       </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Month</th><th>Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins Accrued</th><th>Days Accrued</th></tr></thead>
+        <tbody id="monthlyBody"></tbody>
+      </table></div>
+    </div>
 
-      <div id="monthly" class="section">
-        <h2 style="color:var(--brand-1);margin-top:0">Monthly Summary - <span id="monthlyEmployeeName"></span></h2>
-        <table><thead><tr><th>Month</th><th>Days Worked</th><th>Sick</th><th>Annual</th><th>Study</th><th>Family</th><th>Late Days</th><th>Lunch Violations</th><th>Mins</th><th>Days</th></tr></thead><tbody id="monthlyBody"></tbody></table>
-        <div class="export-section"><p class="report-note">Reports must be beautiful and nice.</p><div style="margin-top:8px"><button class="btn" onclick="exportToCSV()">Download CSV</button><button class="btn btn-secondary" onclick="exportAllEmployeesCSV()">Download All CSV</button></div></div>
+    <!-- WEEKLY PAGE -->
+    <div id="page-weekly" class="page">
+      <div class="topbar"><div><h2>Weekly Report</h2><p>Detailed week-by-week breakdown per employee</p></div></div>
+      <div class="report-header">
+        <div class="report-filters">
+          <label style="font-size:13px;font-weight:600">Employee:</label>
+          <select id="weeklyEmpFilter" onchange="updateWeekly()"></select>
+          <label style="font-size:13px;font-weight:600">Year:</label>
+          <select id="weeklyYearFilter" onchange="updateWeekly()"></select>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="exportWeeklyCSV()">⬇ Export Weekly CSV</button>
       </div>
+      <div class="summary-strip" id="weeklySummaryStrip"></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Week</th><th>Dates</th><th>Days Worked</th><th>Late Days</th><th>Lunch Violations</th><th>Mins Accrued</th><th>Days Accrued</th><th>Leave Days</th></tr></thead>
+        <tbody id="weeklyBody"></tbody>
+      </table></div>
+    </div>
 
-      <div id="balance" class="section">
-        <h2 style="color:var(--brand-1);margin-top:0">Balance Details - <span id="balanceEmployeeName"></span></h2>
-        <div style="overflow:auto"><table><thead><tr><th>Date</th><th>Location</th><th>Arrival</th><th>Lunch</th><th>Status</th><th>Late</th><th>Lunch Deduct</th><th>Mins</th><th>Leave</th><th>Balance</th><th>Comments</th><th>Approval</th><th>Actions</th></tr></thead><tbody id="balanceBody"></tbody></table></div>
+    <!-- LUNCH REPORT PAGE -->
+    <div id="page-lunchreport" class="page">
+      <div class="topbar"><div><h2>Lunch Report</h2><p>All lunch records — violations, approvals and compliance</p></div></div>
+      <div class="report-header">
+        <div class="report-filters">
+          <label style="font-size:13px;font-weight:600">Employee:</label>
+          <select id="lunchEmpFilter" onchange="updateLunchReport()">
+            <option value="all">All Employees</option>
+          </select>
+          <label style="font-size:13px;font-weight:600">Filter:</label>
+          <select id="lunchStatusFilter" onchange="updateLunchReport()">
+            <option value="all">All Records</option>
+            <option value="violation">Violations Only</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="pending">Pending Approval</option>
+            <option value="compliant">Compliant</option>
+          </select>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="exportLunchCSV()">⬇ Export Lunch CSV</button>
       </div>
+      <div class="summary-strip" id="lunchSummaryStrip"></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Employee</th><th>Group</th><th>Scheduled End</th><th>Actual End</th><th>Late (min)</th><th>Deduction</th><th>Status</th><th>Manager</th><th>Reason</th></tr></thead>
+        <tbody id="lunchReportBody"></tbody>
+      </table></div>
+    </div>
 
-      <div id="employees" class="section">
-        <h2 style="color:var(--brand-1);margin-top:0">All Employees</h2>
-        <div class="employee-list" id="employeeList"></div>
-        <div style="margin-top:12px"><button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button></div>
+    <!-- BALANCE PAGE -->
+    <div id="page-balance" class="page">
+      <div class="topbar"><div><h2>Balance Details</h2><p>Daily ledger for the selected employee</p></div></div>
+      <div class="report-header">
+        <div class="report-filters">
+          <label style="font-size:13px;font-weight:600">Employee:</label>
+          <select id="balanceEmpFilter" onchange="updateBalance()"></select>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="exportBalanceCSV()">⬇ Export CSV</button>
       </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Date</th><th>Arrival</th><th>Lunch</th><th>Status</th><th>Late Min</th><th>Lunch Deduct</th><th>Accrued</th><th>Leave</th><th>Running Balance</th><th>Approval</th><th>Comments</th><th>Actions</th></tr></thead>
+        <tbody id="balanceBody"></tbody>
+      </table></div>
+    </div>
 
+    <!-- EMPLOYEES PAGE -->
+    <div id="page-employees" class="page">
+      <div class="topbar"><div><h2>All Employees</h2><p>Manage registered employees</p></div>
+        <button class="btn btn-danger btn-sm" onclick="clearAllData()">⚠ Clear All Data</button>
+      </div>
+      <div class="emp-grid" id="employeeList"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- Add Employee -->
+<div id="addEmpModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('addEmpModal')">×</button>
+    <h3>Add New Employee</h3>
+    <div class="modal-body">
+      <div class="fg"><label>Full Name</label><input id="newEmpName" type="text" placeholder="e.g. Jane Mokoena"/></div>
+      <div class="fg"><label>Employee ID</label><input id="newEmpId" type="text" placeholder="e.g. EMP002"/></div>
+      <div class="fg"><label>Lunch Group</label>
+        <select id="newEmpGroup"><option value="A">Group A (12:00–13:00)</option><option value="B">Group B (13:00–14:00)</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addEmpModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addEmployee()">Add Employee</button>
     </div>
   </div>
+</div>
 
-  <!-- Add employee modal -->
-  <div id="addEmployeeModal" class="modal" aria-hidden="true">
-    <div class="modal-content">
-      <button class="close-modal" onclick="closeAddEmployeeModal()" style="float:right;border:none;background:transparent;font-size:20px">×</button>
-      <h3>Add New Employee</h3>
-      <div class="input-group"><label>Employee Name</label><input id="newEmployeeName" type="text"/></div>
-      <div class="input-group"><label>Employee ID</label><input id="newEmployeeId" type="text"/></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="addEmployee()">Add</button><button class="btn btn-secondary" onclick="closeAddEmployeeModal()">Cancel</button></div>
-    </div>
-  </div>
-
-  <!-- Lunch approval modal (shows details when lunch was late) -->
-  <div id="lunchApprovalModal" class="modal">
-    <div class="modal-content">
-      <h3>Manager Approval Required</h3>
-      <div id="lunchViolationDetails" style="margin-bottom:10px;color:#333"></div>
-      <div class="input-group"><label>Manager Name</label><input id="managerName" type="text"/></div>
-      <div class="input-group"><label>Reason</label><textarea id="lunchReason"></textarea></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-success" onclick="approveLunchViolation()">Approve</button><button class="btn btn-secondary" onclick="cancelLunchViolation()">Cancel</button></div>
-    </div>
-  </div>
-
-  <!-- Leave approval modal -->
-  <div id="leaveApprovalModal" class="modal">
-    <div class="modal-content">
-      <button class="close-modal" onclick="closeLeaveApprovalModal()" style="float:right;border:none;background:transparent;font-size:20px">×</button>
-      <h3>Leave Approval</h3>
-      <div class="input-group"><label>Approver Name</label><input id="leaveApproverName" type="text"/></div>
-      <div class="input-group"><label>Comments</label><textarea id="leaveApprovalReason"></textarea></div>
-      <div style="display:flex;gap:8px;justify-content:flex-end">
-        <button id="leaveApproveBtn" class="btn btn-success" onclick="confirmLeaveApproval('approved')">Approve</button>
-        <button id="leaveRejectBtn" class="btn btn-danger" onclick="confirmLeaveApproval('rejected')">Reject</button>
-        <button class="btn btn-secondary" onclick="closeLeaveApprovalModal()">Cancel</button>
+<!-- Lunch Approval (inline approval from Record Entry) -->
+<div id="lunchApprovalModal" class="modal">
+  <div class="modal-box">
+    <h3>⏰ Extended Lunch — Manager Approval</h3>
+    <div class="modal-body">
+      <div id="lunchModalDetails" style="background:var(--warn-light);border-radius:10px;padding:14px;border:1px solid #fde68a"></div>
+      <div class="fg"><label>Manager Name</label><input id="managerName" type="text" placeholder="Approving manager"/></div>
+      <div class="fg"><label>Approval Decision</label>
+        <select id="managerDecision">
+          <option value="approved">✅ Approve — deduct the late minutes</option>
+          <option value="rejected">❌ Reject — do not save this entry</option>
+        </select>
       </div>
+      <div class="fg"><label>Reason / Notes</label><textarea id="lunchReason" placeholder="Reason for extended lunch..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cancelLunchModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLunchApproval()">Submit Decision</button>
     </div>
   </div>
+</div>
 
-  <div id="commentModal" class="modal">
-    <div class="modal-content">
-      <button onclick="closeCommentModal()" style="float:right;border:none;background:transparent;font-size:20px">×</button>
-      <h3>Comments</h3>
-      <pre id="commentContent" style="white-space:pre-wrap"></pre>
-      <div style="display:flex;justify-content:flex-end;margin-top:10px"><button class="btn btn-secondary" onclick="closeCommentModal()">Close</button></div>
+<!-- Pending lunch item approval -->
+<div id="pendingApprovalModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('pendingApprovalModal')">×</button>
+    <h3>Manager Approval</h3>
+    <div class="modal-body">
+      <div id="pendingModalDetails" style="background:var(--warn-light);border-radius:10px;padding:14px;border:1px solid #fde68a;margin-bottom:4px"></div>
+      <div class="fg"><label>Manager Name</label><input id="pendingManagerName" type="text"/></div>
+      <div class="fg"><label>Reason</label><textarea id="pendingReason"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('pendingApprovalModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="decidePending('rejected')">❌ Reject</button>
+      <button class="btn btn-success" onclick="decidePending('approved')">✅ Approve</button>
     </div>
   </div>
+</div>
 
-  <script>
-    // Constants and data
-    const OFFICIAL_ARRIVAL = '07:45';
-    const DAILY_ACCUMULATION_MINUTES = 45;
-    const LUNCH_PERIODS = { A: {start:'12:00',end:'13:00'}, B:{start:'13:00',end:'14:00'} };
+<!-- Leave approval -->
+<div id="leaveApprovalModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('leaveApprovalModal')">×</button>
+    <h3>Leave Approval</h3>
+    <div class="modal-body">
+      <div class="fg"><label>Approver Name</label><input id="leaveApprover" type="text"/></div>
+      <div class="fg"><label>Comments</label><textarea id="leaveApprovalReason"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('leaveApprovalModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmLeave('rejected')">Reject</button>
+      <button class="btn btn-success" onclick="confirmLeave('approved')">Approve</button>
+    </div>
+  </div>
+</div>
 
-    let employees = [];
-    let entries = [];
-    let currentEmployeeId = null;
-    let pendingEntry = null;
-    let leaveApprovalContext = { empId:null, entryDate:null, action:null, idx:null };
+<!-- Comment viewer -->
+<div id="commentModal" class="modal">
+  <div class="modal-box">
+    <button class="modal-close" onclick="closeModal('commentModal')">×</button>
+    <h3>Comments</h3>
+    <pre id="commentContent" style="white-space:pre-wrap;font-size:13px;background:var(--page);padding:12px;border-radius:8px;font-family:'DM Mono',monospace"></pre>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('commentModal')">Close</button></div>
+  </div>
+</div>
 
-    // Helpers
-    function setDefaultDate(){ const d = new Date(); const s = d.toISOString().slice(0,10); const el = document.getElementById('workDate'); if(el) el.value = s; }
-    function safeGet(id){ return document.getElementById(id) || null; }
-    function timeToMinutes(t){ if(!t) return 0; const [h,m] = t.split(':').map(Number); return h*60 + m; }
+<script>
+// ─── Constants ───────────────────────────────────────────────
+const OFFICIAL_ARRIVAL = '07:45';
+const ACC_MINS = 45;
+const LUNCH = { A:{start:'12:00',end:'13:00'}, B:{start:'13:00',end:'14:00'} };
 
-    // Persistence
-    function loadData(){
-      try {
-        const se = localStorage.getItem('employees');
-        const sE = localStorage.getItem('leaveEntries');
-        if(se) employees = JSON.parse(se);
-        if(sE) entries = JSON.parse(sE);
-      } catch(e) {
-        console.error('loadData parse error', e);
-        employees = []; entries = [];
-      }
-      if(!employees.length){
-        employees.push({ id: 'emp_' + Date.now(), name: 'Default Employee', employeeId: 'EMP001', lunchGroup: 'A' });
-        saveData();
-      }
-      currentEmployeeId = employees[0].id;
-      populateEmployeeSelectors();
-      updateAllDisplays();
+// ─── State ───────────────────────────────────────────────────
+let employees = [], entries = [], currentEmpId = null;
+let pendingEntry = null;
+let leaveCtx = { empId:null, date:null };
+let pendingLunchCtx = { empId:null, date:null };
+
+// ─── Utils ───────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const toMin = t => { if(!t) return 0; const[h,m]=t.split(':').map(Number); return h*60+m; };
+function setToday(){ const d = new Date().toISOString().slice(0,10); const el = $('workDate'); if(el) el.value = d; }
+function getWeekNumber(d){ const date=new Date(d); date.setHours(0,0,0,0); date.setDate(date.getDate()+3-(date.getDay()+6)%7); const week1=new Date(date.getFullYear(),0,4); return 1+Math.round(((date-week1)/86400000-3+(week1.getDay()+6)%7)/7); }
+function getWeekStart(d){ const date=new Date(d); const day=date.getDay(); const diff=date.getDate()-day+(day===0?-6:1); return new Date(date.setDate(diff)).toISOString().slice(0,10); }
+function formatDate(d){ return new Date(d+'T00:00:00').toLocaleDateString('en-ZA',{day:'2-digit',month:'short',year:'numeric'}); }
+
+// ─── Persistence ─────────────────────────────────────────────
+function load(){
+  try{ employees=JSON.parse(localStorage.getItem('tsiku_emp')||'[]'); entries=JSON.parse(localStorage.getItem('tsiku_ent')||'[]'); }catch(e){ employees=[]; entries=[]; }
+  if(!employees.length){ employees.push({id:'emp_'+Date.now(),name:'Default Employee',employeeId:'EMP001',lunchGroup:'A'}); save(); }
+  currentEmpId = employees[0].id;
+  initSelectors(); render();
+}
+function save(){ localStorage.setItem('tsiku_emp',JSON.stringify(employees)); localStorage.setItem('tsiku_ent',JSON.stringify(entries)); }
+
+// ─── Selectors ───────────────────────────────────────────────
+function initSelectors(){
+  const ids = ['employeeSelect','entryEmployee','monthlyEmpFilter','weeklyEmpFilter','balanceEmpFilter'];
+  ids.forEach(id => {
+    const sel = $(id); if(!sel) return;
+    const prev = sel.value;
+    sel.innerHTML = employees.map(e=>`<option value="${e.id}">${e.name} (${e.employeeId})</option>`).join('');
+    if(prev) sel.value = prev;
+  });
+  // Lunch report has "All" option
+  const lr = $('lunchEmpFilter');
+  if(lr){ lr.innerHTML = '<option value="all">All Employees</option>' + employees.map(e=>`<option value="${e.id}">${e.name}</option>`).join(''); }
+  // Year filter
+  const wyr = $('weeklyYearFilter');
+  if(wyr){ const yr=new Date().getFullYear(); wyr.innerHTML=[yr-1,yr,yr+1].map(y=>`<option value="${y}"${y===yr?' selected':''}>${y}</option>`).join(''); }
+  $('totalEmployees').textContent = employees.length;
+  if($('employeeSelect')) $('employeeSelect').value = currentEmpId;
+}
+
+function switchEmployee(){ currentEmpId=$('employeeSelect').value; render(); }
+function empEntries(id){ return entries.filter(e=>e.employeeId===id).sort((a,b)=>new Date(a.date)-new Date(b.date)); }
+
+// ─── Navigation ──────────────────────────────────────────────
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  $('page-'+name).classList.add('active');
+  event && event.currentTarget && event.currentTarget.classList.add('active');
+  if(name==='monthly') updateMonthly();
+  if(name==='weekly') updateWeekly();
+  if(name==='lunchreport') updateLunchReport();
+  if(name==='balance') updateBalance();
+  if(name==='employees') updateEmpList();
+  if(name==='pending') updatePendingList();
+}
+
+// ─── Modal helpers ───────────────────────────────────────────
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+
+// ─── Form logic ──────────────────────────────────────────────
+function toggleStatus(){
+  const s = $('dayStatus').value;
+  $('workedFields').style.display = s==='worked'?'block':'none';
+  $('leaveAmountGroup').style.display = ['annual','study','family'].includes(s)?'block':'none';
+}
+function calcLate(){
+  const arr = $('arrivalTime').value; if(!arr) return;
+  const lateMin = Math.round((toMin(arr)-toMin(OFFICIAL_ARRIVAL)));
+  const ind = $('lateIndicator');
+  if(lateMin<=0){ ind.className='indicator show'; ind.innerHTML=`<span class="pill on-time">✅ On Time — full ${ACC_MINS} min</span>`; }
+  else { const acc=Math.max(ACC_MINS-lateMin,0); ind.className='indicator show'; ind.innerHTML=acc>0?`<span class="pill late">⚠ ${lateMin} min late — ${acc} min accrued</span>`:`<span class="pill very-late">❌ ${lateMin} min late — 0 min accrued</span>`; }
+}
+function calcLunch(){
+  const g = document.querySelector('input[name="lunchGroup"]:checked')?.value||'A';
+  const s = $('lunchStart').value, e = $('lunchEnd').value;
+  const ind = $('lunchIndicator'); if(!s||!e){ ind.className='indicator'; return; }
+  const late = Math.max(0,toMin(e)-toMin(LUNCH[g].end));
+  if(late===0){ ind.className='indicator show'; ind.innerHTML=`<span class="pill on-time">✅ Lunch on time (${LUNCH[g].start}–${LUNCH[g].end})</span>`; }
+  else { ind.className='indicator show'; ind.innerHTML=`<span class="pill very-late">❌ ${late} min late return — manager approval required</span>`; }
+}
+
+function resetForm(){
+  setToday(); $('dayStatus').value='worked'; $('arrivalTime').value='07:45';
+  $('comments').value=''; $('lunchStart').value=''; $('lunchEnd').value='';
+  $('lateIndicator').className='indicator'; $('lunchIndicator').className='indicator';
+  toggleStatus();
+}
+
+// ─── Add Entry ───────────────────────────────────────────────
+function addEntry(){
+  const empId=$('entryEmployee').value, date=$('workDate').value, status=$('dayStatus').value;
+  const arr=$('arrivalTime').value||null, comments=$('comments').value||'';
+  const leaveTaken=['annual','study','family'].includes(status)?parseFloat($('leaveTaken').value||0):0;
+  if(!date){alert('Select a date');return;}
+  const g=document.querySelector('input[name="lunchGroup"]:checked')?.value||'A';
+  const ls=$('lunchStart').value, le=$('lunchEnd').value;
+
+  // Check lunch late
+  if(status==='worked' && ls && le){
+    const lunchLate=Math.max(0,toMin(le)-toMin(LUNCH[g].end));
+    if(lunchLate>0){
+      const emp=employees.find(e=>e.id===empId)||{};
+      pendingEntry={empId,date,status,arr,location:'Menlyn Office',g,ls,le,lunchLate,comments,leaveTaken};
+      $('lunchModalDetails').innerHTML=`
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="info-row"><span>Employee</span><span><strong>${emp.name}</strong></span></div>
+          <div class="info-row"><span>Date</span><span>${formatDate(date)}</span></div>
+          <div class="info-row"><span>Lunch Group</span><span>Group ${g} (ends ${LUNCH[g].end})</span></div>
+          <div class="info-row"><span>Actual return</span><span><strong>${le}</strong></span></div>
+          <div class="info-row"><span>Minutes late</span><span><strong style="color:var(--danger)">${lunchLate} min</strong></span></div>
+          <div class="info-row"><span>Deduction</span><span><strong>−${lunchLate} min from 45 min</strong></span></div>
+        </div>`;
+      $('managerName').value=''; $('lunchReason').value=''; $('managerDecision').value='approved';
+      openModal('lunchApprovalModal');
+      return;
     }
-    function saveData(){ localStorage.setItem('employees', JSON.stringify(employees)); localStorage.setItem('leaveEntries', JSON.stringify(entries)); }
+  }
+  commitEntry(empId,date,status,arr,leaveTaken,comments,g,ls,le,0,null,null,'n/a');
+}
 
-    // UI population
-    function populateEmployeeSelectors(){
-      const sels = [safeGet('employeeSelect'), safeGet('entryEmployee')];
-      sels.forEach(s => {
-        if(!s) return;
-        s.innerHTML = '';
-        employees.forEach(emp => {
-          const o = document.createElement('option');
-          o.value = emp.id;
-          o.textContent = `${emp.name} (${emp.employeeId}) - Group ${emp.lunchGroup || 'A'}`;
-          s.appendChild(o);
-        });
-        if(currentEmployeeId) s.value = currentEmployeeId;
-      });
-      const totalEl = safeGet('totalEmployees'); if(totalEl) totalEl.textContent = employees.length;
+function commitEntry(empId,date,status,arr,leaveTaken,comments,g,ls,le,lunchLate,manager,reason,decision){
+  // Remove duplicate for same date
+  const idx=entries.findIndex(x=>x.employeeId===empId&&x.date===date);
+  if(idx>=0) entries.splice(idx,1);
+  let lateMinutes=0,accumulated=0;
+  if(status==='worked'){
+    lateMinutes=Math.max(0,Math.round(toMin(arr||OFFICIAL_ARRIVAL)-toMin(OFFICIAL_ARRIVAL)));
+    accumulated=lateMinutes<=0?ACC_MINS:Math.max(ACC_MINS-lateMinutes,0);
+    if(lunchLate>0 && decision==='approved') accumulated=Math.max(accumulated-lunchLate,0);
+    if(decision==='rejected') accumulated=0; // rejected means entry still saved but marked
+  }
+  const fullComments = manager ? `[LUNCH LATE – ${decision.toUpperCase()} by: ${manager}]\nReason: ${reason}\n${comments}` : comments;
+  entries.push({
+    employeeId:empId,date,status,location:'Menlyn Office',arrivalTime:arr,
+    lateMinutes,accumulatedMinutes:accumulated,leaveTaken,comments:fullComments,
+    lunchGroup:status==='worked'?g:null,lunchStart:ls||null,lunchEnd:le||null,
+    lunchLateMinutes:lunchLate,lunchDecision:decision,lunchManager:manager,lunchReason:reason,
+    approvalStatus:null,approver:null,approvalReason:null
+  });
+  save(); render(); resetForm();
+}
+
+function submitLunchApproval(){
+  const manager=$('managerName').value.trim(), reason=$('lunchReason').value.trim(), decision=$('managerDecision').value;
+  if(!manager||!reason){alert('Manager name and reason required');return;}
+  if(!pendingEntry){alert('No pending entry');return;}
+  const p=pendingEntry;
+  closeModal('lunchApprovalModal');
+  commitEntry(p.empId,p.date,p.status,p.arr,p.leaveTaken,p.comments,p.g,p.ls,p.le,p.lunchLate,manager,reason,decision);
+  pendingEntry=null;
+}
+function cancelLunchModal(){ pendingEntry=null; closeModal('lunchApprovalModal'); }
+
+// ─── Pending Approvals ───────────────────────────────────────
+let pendingCtxEntry = null;
+function updatePendingList(){
+  const pending = entries.filter(e=>e.lunchLateMinutes>0 && (!e.lunchDecision || e.lunchDecision==='pending'));
+  const cnt=$('pendingCount');
+  if(pending.length){cnt.style.display='inline';cnt.textContent=pending.length;}else{cnt.style.display='none';}
+  const list=$('pendingList');
+  if(!pending.length){list.innerHTML='<p style="color:var(--muted);font-size:14px">✅ No pending lunch approvals.</p>';return;}
+  list.innerHTML=pending.map((e,i)=>{
+    const emp=employees.find(x=>x.id===e.employeeId)||{name:'Unknown'};
+    return `<div class="pending-item">
+      <div class="pi-info">
+        <strong>${emp.name} — ${formatDate(e.date)}</strong>
+        <span>Group ${e.lunchGroup||'?'} · Returned at ${e.lunchEnd||'?'} · <strong style="color:var(--danger)">${e.lunchLateMinutes} min late</strong></span>
+      </div>
+      <div class="pending-actions">
+        <button class="btn btn-primary btn-sm" onclick="openPendingApproval('${e.employeeId}','${e.date}')">Review</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openPendingApproval(empId,date){
+  const e=entries.find(x=>x.employeeId===empId&&x.date===date);
+  if(!e) return;
+  pendingCtxEntry={empId,date};
+  const emp=employees.find(x=>x.id===empId)||{name:'Unknown'};
+  $('pendingModalDetails').innerHTML=`
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <div class="info-row"><span>Employee</span><span><strong>${emp.name}</strong></span></div>
+      <div class="info-row"><span>Date</span><span>${formatDate(date)}</span></div>
+      <div class="info-row"><span>Lunch Group</span><span>Group ${e.lunchGroup} (ends ${LUNCH[e.lunchGroup]?.end})</span></div>
+      <div class="info-row"><span>Actual return</span><span>${e.lunchEnd}</span></div>
+      <div class="info-row"><span>Minutes late</span><span><strong style="color:var(--danger)">${e.lunchLateMinutes} min</strong></span></div>
+    </div>`;
+  $('pendingManagerName').value=''; $('pendingReason').value='';
+  openModal('pendingApprovalModal');
+}
+
+function decidePending(decision){
+  const mgr=$('pendingManagerName').value.trim(), reason=$('pendingReason').value.trim();
+  if(!mgr||!reason){alert('Manager name and reason required');return;}
+  const {empId,date}=pendingCtxEntry;
+  const idx=entries.findIndex(x=>x.employeeId===empId&&x.date===date);
+  if(idx<0){alert('Entry not found');return;}
+  const e=entries[idx];
+  e.lunchDecision=decision;
+  e.lunchManager=mgr;
+  e.lunchReason=reason;
+  e.comments=`[LUNCH LATE – ${decision.toUpperCase()} by: ${mgr}]\nReason: ${reason}\n${e.comments||''}`;
+  if(decision==='approved'){
+    // Recompute accumulation with deduction
+    let acc=e.lateMinutes<=0?ACC_MINS:Math.max(ACC_MINS-e.lateMinutes,0);
+    e.accumulatedMinutes=Math.max(acc-e.lunchLateMinutes,0);
+  } else {
+    // Rejected: 0 accumulation for the day
+    e.accumulatedMinutes=0;
+  }
+  save(); closeModal('pendingApprovalModal'); render(); updatePendingList();
+  alert(`Decision: ${decision.toUpperCase()} — recorded by ${mgr}`);
+}
+
+// ─── Summary Cards ───────────────────────────────────────────
+function updateCards(){
+  const ee=empEntries(currentEmpId);
+  let totMin=0,totTaken=0,totWorked=0,mMin=0;
+  const curMonth=new Date().toISOString().slice(0,7), curYear=new Date().getFullYear();
+  ee.forEach(e=>{ totMin+=e.accumulatedMinutes||0; totTaken+=e.leaveTaken||0; if(e.status==='worked')totWorked++; if(e.date.startsWith(curMonth)&&e.status==='worked')mMin+=e.accumulatedMinutes||0; });
+  const workedYr=ee.filter(e=>e.status==='worked'&&new Date(e.date).getFullYear()===curYear).length;
+  $('totalBalance').textContent=((totMin/480)-totTaken).toFixed(2);
+  $('monthAccumulated').textContent=(mMin/480).toFixed(2);
+  $('totalWorked').textContent=totWorked;
+  $('sickAccrued').textContent=Math.min(6,Math.floor(workedYr/40));
+}
+
+// ─── Monthly ─────────────────────────────────────────────────
+function updateMonthly(){
+  const empId=$('monthlyEmpFilter')?.value||currentEmpId;
+  const ee=empEntries(empId);
+  const m={};
+  ee.forEach(e=>{
+    if(!e.date)return; const k=e.date.slice(0,7);
+    if(!m[k])m[k]={worked:0,sick:0,annual:0,study:0,family:0,lateDays:0,lunchV:0,mins:0};
+    if(e.status==='worked'){m[k].worked++;m[k].mins+=e.accumulatedMinutes||0;if(e.lateMinutes>0)m[k].lateDays++;if(e.lunchLateMinutes>0)m[k].lunchV++;}
+    else if(e.status==='sick')m[k].sick++;
+    else if(e.status==='annual')m[k].annual+=e.leaveTaken||0;
+    else if(e.status==='study')m[k].study+=e.leaveTaken||0;
+    else if(e.status==='family')m[k].family+=e.leaveTaken||0;
+  });
+  const tbody=$('monthlyBody'); tbody.innerHTML='';
+  Object.keys(m).sort().reverse().forEach(k=>{
+    const d=m[k], r=tbody.insertRow();
+    r.innerHTML=`<td><strong>${new Date(k+'-01').toLocaleDateString('en-ZA',{year:'numeric',month:'long'})}</strong></td><td>${d.worked}</td><td>${d.sick}</td><td>${d.annual.toFixed(1)}</td><td>${d.study.toFixed(1)}</td><td>${d.family.toFixed(1)}</td><td>${d.lateDays>0?`<span class="badge badge-yellow">${d.lateDays}</span>`:d.lateDays}</td><td>${d.lunchV>0?`<span class="badge badge-red">${d.lunchV}</span>`:d.lunchV}</td><td><span style="font-family:'DM Mono',monospace">${d.mins}</span></td><td><strong style="color:var(--brand)">${(d.mins/480).toFixed(2)}</strong></td>`;
+  });
+}
+
+// ─── Weekly ──────────────────────────────────────────────────
+function updateWeekly(){
+  const empId=$('weeklyEmpFilter')?.value||currentEmpId;
+  const yr=parseInt($('weeklyYearFilter')?.value||new Date().getFullYear());
+  const ee=empEntries(empId).filter(e=>new Date(e.date).getFullYear()===yr);
+  const w={};
+  ee.forEach(e=>{
+    const wk=getWeekNumber(e.date), ws=getWeekStart(e.date);
+    const key=`${yr}-W${String(wk).padStart(2,'0')}`;
+    if(!w[key])w[key]={week:wk,start:ws,end:'',worked:0,late:0,lunchV:0,mins:0,leave:0};
+    w[key].end=e.date;
+    if(e.status==='worked'){w[key].worked++;w[key].mins+=e.accumulatedMinutes||0;if(e.lateMinutes>0)w[key].late++;if(e.lunchLateMinutes>0)w[key].lunchV++;}
+    else if(['annual','study','family','sick'].includes(e.status))w[key].leave+=e.leaveTaken||1;
+  });
+
+  // Summary strip
+  const allW=Object.values(w);
+  const totWorked=allW.reduce((a,x)=>a+x.worked,0);
+  const totMins=allW.reduce((a,x)=>a+x.mins,0);
+  const totLate=allW.reduce((a,x)=>a+x.late,0);
+  const totLunch=allW.reduce((a,x)=>a+x.lunchV,0);
+  $('weeklySummaryStrip').innerHTML=`
+    <div class="strip-item"><div class="sl">Weeks with Data</div><div class="sv">${allW.length}</div></div>
+    <div class="strip-item"><div class="sl">Days Worked</div><div class="sv">${totWorked}</div></div>
+    <div class="strip-item"><div class="sl">Mins Accrued</div><div class="sv">${totMins}</div></div>
+    <div class="strip-item"><div class="sl">Days Accrued</div><div class="sv">${(totMins/480).toFixed(2)}</div></div>
+    <div class="strip-item"><div class="sl">Late Days</div><div class="sv" style="color:var(--warn)">${totLate}</div></div>
+    <div class="strip-item"><div class="sl">Lunch Violations</div><div class="sv" style="color:var(--danger)">${totLunch}</div></div>`;
+
+  const tbody=$('weeklyBody'); tbody.innerHTML='';
+  Object.keys(w).sort().forEach(k=>{
+    const d=w[k]; const r=tbody.insertRow();
+    r.innerHTML=`<td><strong>Week ${d.week}</strong></td><td style="font-size:12px;color:var(--muted)">${formatDate(d.start)} – ${formatDate(d.end)}</td><td>${d.worked}</td><td>${d.late>0?`<span class="badge badge-yellow">${d.late}</span>`:d.late}</td><td>${d.lunchV>0?`<span class="badge badge-red">${d.lunchV}</span>`:d.lunchV}</td><td style="font-family:'DM Mono',monospace">${d.mins}</td><td><strong style="color:var(--brand)">${(d.mins/480).toFixed(2)}</strong></td><td>${d.leave>0?d.leave.toFixed(1):'-'}</td>`;
+  });
+}
+
+// ─── Lunch Report ─────────────────────────────────────────────
+function updateLunchReport(){
+  const empFilter=$('lunchEmpFilter')?.value||'all';
+  const statusFilter=$('lunchStatusFilter')?.value||'all';
+  let recs=entries.filter(e=>e.status==='worked'&&e.lunchStart&&e.lunchEnd);
+  if(empFilter!=='all') recs=recs.filter(e=>e.employeeId===empFilter);
+  if(statusFilter==='violation') recs=recs.filter(e=>e.lunchLateMinutes>0);
+  else if(statusFilter==='approved') recs=recs.filter(e=>e.lunchDecision==='approved');
+  else if(statusFilter==='rejected') recs=recs.filter(e=>e.lunchDecision==='rejected');
+  else if(statusFilter==='pending') recs=recs.filter(e=>e.lunchLateMinutes>0&&(!e.lunchDecision||e.lunchDecision==='pending'));
+  else if(statusFilter==='compliant') recs=recs.filter(e=>!e.lunchLateMinutes||e.lunchLateMinutes===0);
+
+  const total=recs.length, violations=recs.filter(e=>e.lunchLateMinutes>0).length;
+  const approved=recs.filter(e=>e.lunchDecision==='approved').length;
+  const rejected=recs.filter(e=>e.lunchDecision==='rejected').length;
+  const pending=recs.filter(e=>e.lunchLateMinutes>0&&(!e.lunchDecision||e.lunchDecision==='pending')).length;
+  $('lunchSummaryStrip').innerHTML=`
+    <div class="strip-item"><div class="sl">Total Records</div><div class="sv">${total}</div></div>
+    <div class="strip-item"><div class="sl">Violations</div><div class="sv" style="color:var(--danger)">${violations}</div></div>
+    <div class="strip-item"><div class="sl">Approved</div><div class="sv" style="color:var(--success)">${approved}</div></div>
+    <div class="strip-item"><div class="sl">Rejected</div><div class="sv" style="color:var(--danger)">${rejected}</div></div>
+    <div class="strip-item"><div class="sl">Pending</div><div class="sv" style="color:var(--warn)">${pending}</div></div>`;
+
+  const tbody=$('lunchReportBody'); tbody.innerHTML='';
+  recs.sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e=>{
+    const emp=employees.find(x=>x.id===e.employeeId)||{name:'?'};
+    const scheduledEnd=LUNCH[e.lunchGroup]?.end||'?';
+    const late=e.lunchLateMinutes||0;
+    let statusBadge='<span class="badge badge-green">✓ Compliant</span>';
+    if(late>0){
+      const d=e.lunchDecision;
+      if(d==='approved')statusBadge='<span class="badge badge-green">✅ Approved</span>';
+      else if(d==='rejected')statusBadge='<span class="badge badge-red">❌ Rejected</span>';
+      else statusBadge='<span class="badge badge-yellow">⏳ Pending</span>';
     }
+    const r=tbody.insertRow();
+    r.innerHTML=`<td>${formatDate(e.date)}</td><td>${emp.name}</td><td>Group ${e.lunchGroup}</td><td>${scheduledEnd}</td><td>${e.lunchEnd}</td><td>${late>0?`<span style="color:var(--danger);font-weight:700">+${late}</span>`:'-'}</td><td>${late>0?`<span style="color:var(--danger)">−${late} min</span>`:'-'}</td><td>${statusBadge}</td><td>${e.lunchManager||'-'}</td><td style="font-size:12px;color:var(--muted);max-width:180px">${e.lunchReason||'-'}</td>`;
+  });
+}
 
-    function switchEmployee(){
-      const el = safeGet('employeeSelect');
-      if(!el) return;
-      currentEmployeeId = el.value;
-      const entrySel = safeGet('entryEmployee'); if(entrySel) entrySel.value = currentEmployeeId;
-      updateAllDisplays();
+// ─── Balance ─────────────────────────────────────────────────
+function updateBalance(){
+  const empId=$('balanceEmpFilter')?.value||currentEmpId;
+  const ee=empEntries(empId);
+  const tbody=$('balanceBody'); tbody.innerHTML=''; let running=0;
+  ee.forEach((e,idx)=>{
+    running+=(e.accumulatedMinutes||0)-((e.leaveTaken||0)*480);
+    const st={worked:'Worked',sick:'Sick Leave',annual:'Annual Leave',study:'Study Leave',family:'Family Leave'}[e.status]||e.status;
+    const lateBadge=e.status==='worked'?(e.lateMinutes>0?`<span class="badge badge-yellow">${e.lateMinutes}m</span>`:'<span class="badge badge-green">On Time</span>'):'-';
+    const lunchBadge=e.lunchStart&&e.lunchEnd?(e.lunchLateMinutes>0?`<span style="color:var(--danger)">${e.lunchStart}–${e.lunchEnd}</span>`:`${e.lunchStart}–${e.lunchEnd}`):'-';
+    let appBadge='';
+    if(['annual','study','family','sick'].includes(e.status)){
+      appBadge=e.approvalStatus==='approved'?'<span class="badge badge-green">Approved</span>':e.approvalStatus==='rejected'?'<span class="badge badge-red">Rejected</span>':'<span class="badge badge-yellow">Pending</span>';
     }
+    const comm=e.comments?`<span style="cursor:pointer;color:var(--brand);text-decoration:underline" onclick="viewComment(${JSON.stringify(e.comments)})">${(e.comments).substring(0,30)}…</span>`:'-';
+    let actBtns='';
+    if(['annual','study','family','sick'].includes(e.status)) actBtns=`<button class="btn btn-success btn-sm" onclick="openLeaveApproval('${e.employeeId}','${e.date}')">Approve/Reject</button>`;
+    const r=tbody.insertRow();
+    r.innerHTML=`<td>${formatDate(e.date)}</td><td>${e.arrivalTime||'-'}</td><td>${lunchBadge}</td><td>${st}</td><td>${lateBadge}</td><td>${e.lunchLateMinutes?`<span style="color:var(--danger)">−${e.lunchLateMinutes}</span>`:'-'}</td><td style="font-family:'DM Mono',monospace">${e.accumulatedMinutes!==undefined?'+'+e.accumulatedMinutes:''}</td><td>${e.leaveTaken?e.leaveTaken.toFixed(1):'-'}</td><td><strong style="color:var(--brand);font-family:'DM Mono',monospace">${(running/480).toFixed(2)}</strong></td><td>${appBadge}</td><td style="font-size:12px">${comm}</td><td>${actBtns}</td>`;
+  });
+}
 
-    // Arrival + lunch calculations (UI)
-    function calculateLate(){
-      const status = safeGet('dayStatus')?.value;
-      if(status !== 'worked') return;
-      const arrival = safeGet('arrivalTime')?.value;
-      if(!arrival) return;
-      const late = Math.round((new Date('2000-01-01 ' + arrival) - new Date('2000-01-01 ' + OFFICIAL_ARRIVAL)) / 60000);
-      const ind = safeGet('lateIndicator');
-      if(!ind) return;
-      if(late <= 0){
-        ind.className = 'late-indicator on-time';
-        ind.innerHTML = '✅ On Time — full 45 minutes';
-      } else {
-        const acc = DAILY_ACCUMULATION_MINUTES - late;
-        if(acc > 0){
-          ind.className = 'late-indicator late';
-          ind.innerHTML = `⚠️ ${late} min late — will accumulate ${acc} min`;
-        } else {
-          ind.className = 'late-indicator very-late';
-          ind.innerHTML = `❌ ${late} min late — no accumulation`;
-        }
-      }
-    }
+// ─── Leave Approval ──────────────────────────────────────────
+function openLeaveApproval(empId,date){
+  leaveCtx={empId,date}; $('leaveApprover').value=''; $('leaveApprovalReason').value=''; openModal('leaveApprovalModal');
+}
+function confirmLeave(result){
+  const approver=$('leaveApprover').value.trim(); const reason=$('leaveApprovalReason').value.trim();
+  if(!approver){alert('Enter approver name');return;}
+  const idx=entries.findIndex(e=>e.employeeId===leaveCtx.empId&&e.date===leaveCtx.date);
+  if(idx<0){alert('Entry not found');return;}
+  entries[idx].approvalStatus=result; entries[idx].approver=approver; entries[idx].approvalReason=reason||null;
+  save(); closeModal('leaveApprovalModal'); render();
+}
 
-    function calculateLunchPenalty(){
-      const status = safeGet('dayStatus')?.value;
-      if(status !== 'worked') return;
-      const group = document.querySelector('input[name="lunchGroup"]:checked')?.value || 'A';
-      const start = safeGet('lunchStart')?.value;
-      const end = safeGet('lunchEnd')?.value;
-      const ind = safeGet('lunchIndicator'); if(!ind) return;
-      if(!start || !end){ ind.style.display = 'none'; return; }
-      const scheduledEnd = timeToMinutes(LUNCH_PERIODS[group].end);
-      const actualEnd = timeToMinutes(end);
-      const late = Math.max(0, actualEnd - scheduledEnd);
-      if(late === 0){
-        ind.className = 'late-indicator on-time';
-        ind.innerHTML = `✅ Lunch on time (${LUNCH_PERIODS[group].start}-${LUNCH_PERIODS[group].end})`;
-        ind.style.display = 'block';
-      } else {
-        const remaining = DAILY_ACCUMULATION_MINUTES - late;
-        ind.className = 'late-indicator very-late';
-        ind.innerHTML = `❌ Lunch returned ${late} min late — deduct ${late} min. Final accumulation: ${remaining} min`;
-        ind.style.display = 'block';
-      }
-    }
+// ─── Employees ───────────────────────────────────────────────
+function addEmployee(){
+  const name=$('newEmpName').value.trim(), id=$('newEmpId').value.trim()||('EMP'+(employees.length+1).toString().padStart(3,'0')), grp=$('newEmpGroup').value;
+  if(!name){alert('Enter name');return;}
+  employees.push({id:'emp_'+Date.now(),name,employeeId:id,lunchGroup:grp});
+  save(); initSelectors(); closeModal('addEmpModal'); render();
+}
 
-    function toggleArrivalTime(){
-      const status = safeGet('dayStatus')?.value || 'worked';
-      const arrivalGroup = safeGet('arrivalGroup'); if(arrivalGroup) arrivalGroup.style.display = (status === 'worked') ? 'block' : 'none';
-      const leaveGroup = safeGet('leaveAmountGroup'); if(leaveGroup) leaveGroup.style.display = (['annual','study','family'].includes(status)) ? 'block' : 'none';
-    }
+function updateEmpList(){
+  const c=$('employeeList'); if(!c)return; c.innerHTML='';
+  employees.forEach(emp=>{
+    const ee=empEntries(emp.id);
+    let totMin=0,totTaken=0; ee.forEach(e=>{totMin+=e.accumulatedMinutes||0;totTaken+=e.leaveTaken||0;});
+    const balance=(totMin/480)-totTaken;
+    const violations=ee.filter(e=>e.lunchLateMinutes>0).length;
+    const card=document.createElement('div'); card.className='emp-card';
+    card.innerHTML=`<h4>${emp.name}</h4><div class="emp-meta">ID: ${emp.employeeId} · Group ${emp.lunchGroup||'A'}</div>
+      <div class="emp-stats">
+        <div class="emp-stat"><div class="es-l">Balance</div><div class="es-v">${balance.toFixed(2)}</div></div>
+        <div class="emp-stat"><div class="es-l">Lunch Violations</div><div class="es-v" style="color:var(--danger)">${violations}</div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn btn-primary btn-sm" onclick="viewEmp('${emp.id}')">View</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEmp('${emp.id}')">Delete</button>
+      </div>`;
+    c.appendChild(card);
+  });
+}
 
-    // Employee management
-    function openAddEmployeeModal(){ safeGet('addEmployeeModal')?.classList.add('active'); safeGet('newEmployeeName').value = ''; safeGet('newEmployeeId').value = ''; }
-    function closeAddEmployeeModal(){ safeGet('addEmployeeModal')?.classList.remove('active'); }
-    function addEmployee(){
-      const name = safeGet('newEmployeeName')?.value.trim();
-      const id = safeGet('newEmployeeId')?.value.trim() || ('EMP' + (employees.length+1).toString().padStart(3,'0'));
-      if(!name){ alert('Enter name'); return; }
-      employees.push({ id: 'emp_' + Date.now(), name: name, employeeId: id, lunchGroup: 'A' });
-      saveData(); populateEmployeeSelectors(); closeAddEmployeeModal(); updateAllDisplays();
-    }
+function viewEmp(id){ currentEmpId=id; $('employeeSelect').value=id; $('entryEmployee').value=id; showPage('monthly'); }
+function deleteEmp(id){ if(!confirm('Delete employee and all records?'))return; employees=employees.filter(e=>e.id!==id); entries=entries.filter(e=>e.employeeId!==id); if(!employees.length)employees.push({id:'emp_'+Date.now(),name:'Default Employee',employeeId:'EMP001',lunchGroup:'A'}); currentEmpId=employees[0].id; save(); initSelectors(); render(); }
+function clearAllData(){ if(!confirm('⚠ Clear ALL data permanently?'))return; entries=[]; employees=[{id:'emp_'+Date.now(),name:'Default Employee',employeeId:'EMP001',lunchGroup:'A'}]; currentEmpId=employees[0].id; save(); initSelectors(); render(); }
 
-    // Add entry: handles single-day worked & leave ranges; prompts for lunch approval if lunch late
-    function addEntry(){
-      const employeeId = safeGet('entryEmployee')?.value;
-      const date = safeGet('workDate')?.value;
-      const status = safeGet('dayStatus')?.value;
-      const arrival = safeGet('arrivalTime')?.value || null;
-      const comments = safeGet('comments')?.value || '';
-      const leaveTaken = (['annual','study','family'].includes(status) ? parseFloat(safeGet('leaveTaken')?.value || 0) : 0) || 0;
+// ─── Comment Viewer ──────────────────────────────────────────
+function viewComment(c){ $('commentContent').textContent=c; openModal('commentModal'); }
 
-      if(!date){ alert('Select date'); return; }
+// ─── Exports ─────────────────────────────────────────────────
+function dl(content,filename){ const b=new Blob([content],{type:'text/csv;charset=utf-8;'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=filename; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); }
 
-      // Multi-day leave (if toDate provided)
-      const toDate = safeGet('toDate')?.value;
-      if(toDate && ['annual','study','family','sick'].includes(status)){
-        const s = new Date(date), e = new Date(toDate);
-        if(e < s){ alert('End date must be after start date'); return; }
-        for(let d = new Date(s); d <= e; d.setDate(d.getDate()+1)){
-          const ds = d.toISOString().slice(0,10);
-          const idx = entries.findIndex(x => x.employeeId === employeeId && x.date === ds);
-          if(idx >= 0) entries.splice(idx, 1);
-          entries.push({
-            employeeId, date: ds, status, location: 'Menlyn Office',
-            arrivalTime: null, lateMinutes: 0, accumulatedMinutes: 0,
-            leaveTaken, comments, lunchGroup: null, lunchStart: null, lunchEnd: null, lunchLateMinutes: 0,
-            approvalStatus: null, approver: null, approvalReason: null
-          });
-        }
-        saveData(); updateAllDisplays(); resetForm(); alert('Leave recorded'); return;
-      }
+function exportMonthlyCSV(){
+  const empId=$('monthlyEmpFilter')?.value||currentEmpId;
+  const emp=employees.find(e=>e.id===empId)||employees[0];
+  let csv=`Tsiku Leave Tracker — Monthly Summary\nEmployee: ${emp.name} (${emp.employeeId})\nMonth,Days Worked,Sick,Annual,Study,Family,Late Days,Lunch Violations,Mins,Days\n`;
+  // build from monthly logic
+  const m={};
+  empEntries(empId).forEach(e=>{ if(!e.date)return; const k=e.date.slice(0,7); if(!m[k])m[k]={worked:0,sick:0,annual:0,study:0,family:0,lateDays:0,lunchV:0,mins:0}; if(e.status==='worked'){m[k].worked++;m[k].mins+=e.accumulatedMinutes||0;if(e.lateMinutes>0)m[k].lateDays++;if(e.lunchLateMinutes>0)m[k].lunchV++;} else if(e.status==='sick')m[k].sick++; else if(e.status==='annual')m[k].annual+=e.leaveTaken||0; else if(e.status==='study')m[k].study+=e.leaveTaken||0; else if(e.status==='family')m[k].family+=e.leaveTaken||0; });
+  Object.keys(m).sort().forEach(k=>{ const d=m[k]; csv+=`${k},${d.worked},${d.sick},${d.annual.toFixed(1)},${d.study.toFixed(1)},${d.family.toFixed(1)},${d.lateDays},${d.lunchV},${d.mins},${(d.mins/480).toFixed(2)}\n`; });
+  dl(csv,`tsiku_monthly_${emp.employeeId}.csv`);
+}
 
-      // For worked days with lunch data, check lunch late and prompt manager approval
-      const lunchGroup = document.querySelector('input[name="lunchGroup"]:checked')?.value || 'A';
-      const lunchStart = safeGet('lunchStart')?.value;
-      const lunchEnd = safeGet('lunchEnd')?.value;
+function exportAllCSV(){
+  let csv=`Tsiku Leave Tracker — All Employees\nEmployee,ID,Date,Status,Arrival,LateMin,LunchStart,LunchEnd,LunchLate,LunchDecision,AccumMins,LeaveTaken,ApprovalStatus,Approver\n`;
+  employees.forEach(emp=>{ empEntries(emp.id).forEach(e=>{ csv+=`"${emp.name}",${emp.employeeId},${e.date},${e.status},${e.arrivalTime||'-'},${e.lateMinutes||0},${e.lunchStart||'-'},${e.lunchEnd||'-'},${e.lunchLateMinutes||0},${e.lunchDecision||'-'},${e.accumulatedMinutes||0},${e.leaveTaken||0},${e.approvalStatus||'-'},${e.approver||'-'}\n`; }); });
+  dl(csv,'tsiku_all_employees.csv');
+}
 
-      if(status === 'worked' && lunchStart && lunchEnd){
-        const scheduledEnd = timeToMinutes(LUNCH_PERIODS[lunchGroup].end);
-        const actualEnd = timeToMinutes(lunchEnd);
-        const lunchLate = Math.max(0, actualEnd - scheduledEnd);
-        if(lunchLate > 0){
-          // Save pending entry and show modal details
-          pendingEntry = { employeeId, date, status, arrival, location: 'Menlyn Office', lunchGroup, lunchStart, lunchEnd, lunchLate, comments, leaveTaken };
-          const emp = employees.find(e => e.id === employeeId) || {};
-          safeGet('lunchViolationDetails').innerHTML = `<p><strong>Employee:</strong> ${emp.name || ''}</p><p><strong>Lunch Group:</strong> ${lunchGroup} (ends ${LUNCH_PERIODS[lunchGroup].end})</p><p><strong>Actual end:</strong> ${lunchEnd}</p><p><strong>Late by:</strong> ${lunchLate} minutes</p><p><strong>Deduction:</strong> ${lunchLate} min from daily 45 min accumulation</p>`;
-          safeGet('managerName').value = ''; safeGet('lunchReason').value = '';
-          safeGet('lunchApprovalModal').classList.add('active');
-          return;
-        }
-      }
+function exportWeeklyCSV(){
+  const empId=$('weeklyEmpFilter')?.value||currentEmpId;
+  const emp=employees.find(e=>e.id===empId)||employees[0];
+  const yr=parseInt($('weeklyYearFilter')?.value||new Date().getFullYear());
+  let csv=`Tsiku Leave Tracker — Weekly Report\nEmployee: ${emp.name} (${emp.employeeId}) · Year: ${yr}\nWeek,Start Date,End Date,Days Worked,Late Days,Lunch Violations,Mins Accrued,Days Accrued,Leave Days\n`;
+  const ee=empEntries(empId).filter(e=>new Date(e.date).getFullYear()===yr);
+  const w={};
+  ee.forEach(e=>{ const wk=getWeekNumber(e.date),ws=getWeekStart(e.date),key=`${yr}-W${String(wk).padStart(2,'0')}`; if(!w[key])w[key]={week:wk,start:ws,end:'',worked:0,late:0,lunchV:0,mins:0,leave:0}; w[key].end=e.date; if(e.status==='worked'){w[key].worked++;w[key].mins+=e.accumulatedMinutes||0;if(e.lateMinutes>0)w[key].late++;if(e.lunchLateMinutes>0)w[key].lunchV++;}else if(['annual','study','family','sick'].includes(e.status))w[key].leave+=e.leaveTaken||1; });
+  Object.keys(w).sort().forEach(k=>{ const d=w[k]; csv+=`Week ${d.week},${d.start},${d.end},${d.worked},${d.late},${d.lunchV},${d.mins},${(d.mins/480).toFixed(2)},${d.leave.toFixed(1)}\n`; });
+  dl(csv,`tsiku_weekly_${emp.employeeId}_${yr}.csv`);
+}
 
-      // Otherwise compute accumulation and push
-      let accumulated = 0, lateMinutes = 0;
-      if(status === 'worked'){
-        lateMinutes = Math.max(0, Math.round((new Date('2000-01-01 ' + (arrival || OFFICIAL_ARRIVAL)) - new Date('2000-01-01 ' + OFFICIAL_ARRIVAL)) / 60000));
-        accumulated = (lateMinutes <= 0) ? DAILY_ACCUMULATION_MINUTES : Math.max(DAILY_ACCUMULATION_MINUTES - lateMinutes, 0);
-      }
-      entries.push({
-        employeeId, date, status, location: 'Menlyn Office', arrivalTime: arrival,
-        lateMinutes, accumulatedMinutes: accumulated, leaveTaken, comments,
-        lunchGroup: (status === 'worked') ? lunchGroup : null,
-        lunchStart: lunchStart || null, lunchEnd: lunchEnd || null, lunchLateMinutes: 0,
-        approvalStatus: null, approver: null, approvalReason: null
-      });
-      saveData(); updateAllDisplays(); resetForm();
-    }
+function exportLunchCSV(){
+  let csv=`Tsiku Leave Tracker — Lunch Report\nDate,Employee,Group,Scheduled End,Actual End,Late Min,Decision,Manager,Reason\n`;
+  entries.filter(e=>e.status==='worked'&&e.lunchStart&&e.lunchEnd).sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(e=>{ const emp=employees.find(x=>x.id===e.employeeId)||{name:'?'}; const sch=LUNCH[e.lunchGroup]?.end||'?'; csv+=`${e.date},"${emp.name}",${e.lunchGroup},${sch},${e.lunchEnd},${e.lunchLateMinutes||0},${e.lunchDecision||'compliant'},"${e.lunchManager||'-'}","${(e.lunchReason||'').replace(/"/g,'""')}"\n`; });
+  dl(csv,'tsiku_lunch_report.csv');
+}
 
-    // Lunch approval handlers
-    function approveLunchViolation(){
-      const manager = safeGet('managerName')?.value.trim();
-      const reason = safeGet('lunchReason')?.value.trim();
-      if(!manager || !reason){ alert('Manager name and reason required'); return; }
-      const p = pendingEntry;
-      if(!p){ alert('No pending entry'); return; }
+function exportBalanceCSV(){
+  const empId=$('balanceEmpFilter')?.value||currentEmpId;
+  const emp=employees.find(e=>e.id===empId)||employees[0];
+  let csv=`Tsiku Leave Tracker — Balance\nEmployee: ${emp.name} (${emp.employeeId})\nDate,Status,Arrival,LateMin,LunchDeduct,AccumMins,LeaveTaken,RunningBalance,Approval\n`;
+  let run=0;
+  empEntries(empId).forEach(e=>{ run+=(e.accumulatedMinutes||0)-((e.leaveTaken||0)*480); csv+=`${e.date},${e.status},${e.arrivalTime||'-'},${e.lateMinutes||0},${e.lunchLateMinutes||0},${e.accumulatedMinutes||0},${e.leaveTaken||0},${(run/480).toFixed(2)},${e.approvalStatus||'-'}\n`; });
+  dl(csv,`tsiku_balance_${emp.employeeId}.csv`);
+}
 
-      // Compute accumulation: arrival lateness first, then deduct lunch late
-      let accumulated = DAILY_ACCUMULATION_MINUTES;
-      let lateMinutes = 0;
-      if(p.arrival){
-        lateMinutes = Math.max(0, Math.round((new Date('2000-01-01 ' + p.arrival) - new Date('2000-01-01 ' + OFFICIAL_ARRIVAL)) / 60000));
-        if(lateMinutes > 0) accumulated = Math.max(DAILY_ACCUMULATION_MINUTES - lateMinutes, 0);
-      }
-      accumulated = Math.max(accumulated - p.lunchLate, 0);
+// ─── Render All ──────────────────────────────────────────────
+function render(){
+  updateCards();
+  updatePendingList();
+  // Sync selectors
+  ['monthlyEmpFilter','weeklyEmpFilter','balanceEmpFilter'].forEach(id=>{ const el=$(id); if(el&&!el.value) el.value=currentEmpId; });
+}
 
-      const fullComments = `[LUNCH LATE RETURN - Approved by: ${manager}]\nReason: ${reason}\n${p.comments ? '\n' + p.comments : ''}`;
-
-      entries.push({
-        employeeId: p.employeeId, date: p.date, status: p.status, location: p.location, arrivalTime: p.arrival,
-        lateMinutes: lateMinutes, accumulatedMinutes: accumulated, leaveTaken: p.leaveTaken, comments: fullComments,
-        lunchGroup: p.lunchGroup, lunchStart: p.lunchStart, lunchEnd: p.lunchEnd, lunchLateMinutes: p.lunchLate,
-        managerApproval: manager, lunchReason: reason, approvalStatus: 'approved', approver: manager, approvalReason: reason
-      });
-      saveData(); pendingEntry = null; safeGet('lunchApprovalModal')?.classList.remove('active'); updateAllDisplays();
-    }
-
-    function cancelLunchViolation(){ pendingEntry = null; safeGet('lunchApprovalModal')?.classList.remove('active'); }
-
-    // Reset and helpers
-    function resetForm(){ setDefaultDate(); if(safeGet('dayStatus')) safeGet('dayStatus').value = 'worked'; if(safeGet('arrivalTime')) safeGet('arrivalTime').value = '07:45'; if(safeGet('comments')) safeGet('comments').value = ''; if(safeGet('lunchStart')) safeGet('lunchStart').value = ''; if(safeGet('lunchEnd')) safeGet('lunchEnd').value = ''; }
-
-    // View / edit / delete employees and entries
-    function getEmployeeEntries(empId){ return entries.filter(e => e.employeeId === empId).sort((a,b) => new Date(a.date) - new Date(b.date)); }
-
-    function updateAllDisplays(){ populateEmployeeSelectors(); updateSummaryCards(); updateMonthlyTable(); updateBalanceTable(); updateEmployeesList(); }
-
-    function updateSummaryCards(){
-      if(!currentEmployeeId) return;
-      const empEntries = getEmployeeEntries(currentEmployeeId);
-      let totalMinutes = 0, totalTaken = 0, totalWorked = 0, monthMinutes = 0;
-      const currentMonth = new Date().toISOString().slice(0,7);
-      const currentYear = new Date().getFullYear();
-      empEntries.forEach(en => {
-        totalMinutes += en.accumulatedMinutes || 0;
-        totalTaken += en.leaveTaken || 0;
-        if(en.status === 'worked') totalWorked++;
-        if(en.date.startsWith(currentMonth) && en.status === 'worked') monthMinutes += en.accumulatedMinutes || 0;
-      });
-      const workedDaysThisYear = empEntries.filter(e => e.status === 'worked' && new Date(e.date).getFullYear() === currentYear).length;
-      const sickAccrued = Math.min(6, Math.floor(workedDaysThisYear / 40));
-      safeGet('totalBalance').textContent = ((totalMinutes / 480) - totalTaken).toFixed(2);
-      safeGet('monthAccumulated').textContent = (monthMinutes / 480).toFixed(2);
-      safeGet('totalWorked').textContent = totalWorked;
-      safeGet('sickAccrued').textContent = sickAccrued;
-    }
-
-    function updateMonthlyTable(){
-      const empEntries = getEmployeeEntries(currentEmployeeId);
-      const monthly = {};
-      empEntries.forEach(entry => {
-        if(!entry.date) return;
-        const m = entry.date.slice(0,7);
-        if(!monthly[m]) monthly[m] = { worked:0, sick:0, annual:0, study:0, family:0, lateDays:0, lunchViolations:0, accumulatedMinutes:0 };
-        if(entry.status === 'worked'){
-          monthly[m].worked++;
-          monthly[m].accumulatedMinutes += entry.accumulatedMinutes || 0;
-          if(entry.lateMinutes > 0) monthly[m].lateDays++;
-          if(entry.lunchLateMinutes > 0) monthly[m].lunchViolations++;
-        } else if(entry.status === 'sick') monthly[m].sick++;
-        else if(entry.status === 'annual') monthly[m].annual += entry.leaveTaken || 0;
-        else if(entry.status === 'study') monthly[m].study += entry.leaveTaken || 0;
-        else if(entry.status === 'family') monthly[m].family += entry.leaveTaken || 0;
-      });
-      const tbody = safeGet('monthlyBody');
-      if(tbody){ tbody.innerHTML = ''; Object.keys(monthly).sort().reverse().forEach(m => {
-        const d = monthly[m];
-        const row = tbody.insertRow();
-        row.innerHTML = `<td>${new Date(m + '-01').toLocaleDateString(undefined,{year:'numeric',month:'long'})}</td><td>${d.worked}</td><td>${d.sick}</td><td>${d.annual.toFixed(2)}</td><td>${d.study.toFixed(2)}</td><td>${d.family.toFixed(2)}</td><td>${d.lateDays}</td><td>${d.lunchViolations}</td><td>${d.accumulatedMinutes}</td><td>${(d.accumulatedMinutes / 480).toFixed(2)}</td>`;
-      }); }
-      safeGet('monthlyEmployeeName').textContent = (employees.find(e => e.id === currentEmployeeId) || {}).name || '';
-    }
-
-    function updateBalanceTable(){
-      const empEntries = getEmployeeEntries(currentEmployeeId);
-      const tbody = safeGet('balanceBody'); if(!tbody) return;
-      tbody.innerHTML = '';
-      let running = 0;
-      empEntries.forEach((entry, idx) => {
-        running += (entry.accumulatedMinutes || 0) - ((entry.leaveTaken || 0) * 480);
-        const tr = tbody.insertRow();
-        const statusText = { worked:'Worked', sick:'Sick Leave', annual:'Annual Leave', study:'Study Leave', family:'Family Leave' }[entry.status] || entry.status;
-        let lateBadge = '';
-        if(entry.status === 'worked') { lateBadge = (entry.lateMinutes || 0) === 0 ? '<span class="late-badge on-time">On Time</span>' : `<span class="late-badge late">${entry.lateMinutes} min</span>`; }
-        let lunchBadge = '-';
-        if(entry.lunchStart && entry.lunchEnd) { lunchBadge = (entry.lunchLateMinutes || 0) === 0 ? `<span class="lunch-badge normal">${entry.lunchStart}-${entry.lunchEnd}</span>` : `<span class="lunch-badge pending">${entry.lunchStart}-${entry.lunchEnd}</span>`; }
-        const commentDisplay = entry.comments ? `<span class="comment-cell" onclick="showComment(${JSON.stringify(entry.comments)})">${(entry.comments||'').substring(0,40)}${(entry.comments||'').length>40?'...':''}</span>` : '-';
-        let approvalBadge = '';
-        if(['annual','study','family','sick'].includes(entry.status)){
-          if(entry.approvalStatus === 'approved') approvalBadge = `<span class="approval-badge approved">Approved</span>`;
-          else if(entry.approvalStatus === 'rejected') approvalBadge = `<span class="approval-badge rejected">Rejected</span>`;
-          else approvalBadge = `<span class="approval-badge pending">Pending</span>`;
-        }
-        let approvalButtons = '';
-        if(['annual','study','family','sick'].includes(entry.status)){
-          approvalButtons = `<button class="btn btn-success" onclick="openLeaveApproval('${entry.employeeId}','${entry.date}',${idx},'approved')">Approve</button> <button class="btn btn-danger" onclick="openLeaveApproval('${entry.employeeId}','${entry.date}',${idx},'rejected')">Reject</button>`;
-        }
-        tr.innerHTML = `<td>${new Date(entry.date).toLocaleDateString()}</td><td><span class="location-badge">${entry.location || '-'}</span></td><td>${entry.arrivalTime || '-'}</td><td>${lunchBadge}</td><td>${statusText}</td><td>${lateBadge}</td><td>${entry.lunchLateMinutes ? ('-' + entry.lunchLateMinutes) : '-'}</td><td>${entry.accumulatedMinutes ? ('+' + entry.accumulatedMinutes) : (entry.accumulatedMinutes === 0 ? '0' : '')}</td><td>${entry.leaveTaken ? entry.leaveTaken.toFixed(2) : '-'}</td><td><strong>${(running/480).toFixed(2)}</strong></td><td>${commentDisplay}</td><td>${approvalBadge}</td><td>${approvalButtons}</td>`;
-      });
-      safeGet('balanceEmployeeName').textContent = (employees.find(e => e.id === currentEmployeeId) || {}).name || '';
-    }
-
-    function updateEmployeesList(){
-      const container = safeGet('employeeList'); if(!container) return; container.innerHTML = '';
-      employees.forEach(emp => {
-        const eEntries = getEmployeeEntries(emp.id);
-        let totalMinutes = 0, totalTaken = 0, totalWorked = 0;
-        eEntries.forEach(en => { totalMinutes += en.accumulatedMinutes || 0; totalTaken += en.leaveTaken || 0; if(en.status === 'worked') totalWorked++; });
-        const currentYear = new Date().getFullYear();
-        const workedThisYear = eEntries.filter(e => e.status === 'worked' && new Date(e.date).getFullYear() === currentYear).length;
-        const sickAccrued = Math.min(6, Math.floor(workedThisYear / 40));
-        const balance = (totalMinutes / 480) - totalTaken;
-        const card = document.createElement('div'); card.className = 'employee-card';
-        card.innerHTML = `<h4 style="margin:0;color:var(--brand-1)">${emp.name}</h4><div style="margin-top:8px">ID: ${emp.employeeId} | Group ${emp.lunchGroup||'A'}</div><div style="display:flex;gap:8px;margin-top:10px"><div style="flex:1;background:#fff;padding:8px;border-radius:6px;text-align:center"><div style="font-size:12px;color:#666">Balance</div><div style="font-weight:700;color:var(--brand-1)">${balance.toFixed(2)}</div></div><div style="flex:1;background:#fff;padding:8px;border-radius:6px;text-align:center"><div style="font-size:12px;color:#666">Sick</div><div style="font-weight:700;color:var(--brand-1)">${sickAccrued}</div></div></div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" onclick="viewEmployee('${emp.id}')">View</button><button class="btn btn-danger" onclick="deleteEmployee('${emp.id}')">Delete</button></div>`;
-        container.appendChild(card);
-      });
-    }
-
-    function viewEmployee(empId){
-      currentEmployeeId = empId;
-      safeGet('employeeSelect').value = empId;
-      safeGet('entryEmployee').value = empId;
-      updateAllDisplays();
-      // switch to monthly tab
-      const tabs = document.querySelectorAll('.tab'); if(tabs[1]) showTab({ target: tabs[1] }, 'monthly');
-    }
-
-    function deleteEmployee(empId){
-      if(!confirm('Delete employee and all records?')) return;
-      employees = employees.filter(e => e.id !== empId);
-      entries = entries.filter(e => e.employeeId !== empId);
-      if(!employees.length) employees.push({ id: 'emp_' + Date.now(), name: 'Default Employee', employeeId: 'EMP001', lunchGroup: 'A' });
-      currentEmployeeId = employees[0].id;
-      saveData(); populateEmployeeSelectors(); updateAllDisplays();
-    }
-
-    // Leave approval modal flow
-    function openLeaveApproval(empId, entryDate, idx, action){
-      leaveApprovalContext = { empId, entryDate, action, idx };
-      safeGet('leaveApproverName').value = '';
-      safeGet('leaveApprovalReason').value = '';
-      safeGet('leaveApprovalModal').classList.add('active');
-      // optional: show/hide approve/reject buttons based on action
-    }
-    function closeLeaveApprovalModal(){ safeGet('leaveApprovalModal').classList.remove('active'); leaveApprovalContext = { empId:null, entryDate:null, action:null, idx:null }; }
-    function confirmLeaveApproval(result){
-      const approver = safeGet('leaveApproverName').value.trim(); const reason = safeGet('leaveApprovalReason').value.trim();
-      if(!approver){ alert('Enter approver name'); return; }
-      const ctx = leaveApprovalContext; if(!ctx || !ctx.empId || !ctx.entryDate){ alert('Approval context missing'); closeLeaveApprovalModal(); return; }
-      const globalIndex = entries.findIndex(e => e.employeeId === ctx.empId && e.date === ctx.entryDate);
-      if(globalIndex < 0){ alert('Entry not found'); closeLeaveApprovalModal(); return; }
-      entries[globalIndex].approvalStatus = result;
-      entries[globalIndex].approver = approver;
-      entries[globalIndex].approvalReason = reason || null;
-      saveData(); updateAllDisplays(); closeLeaveApprovalModal(); alert('Done');
-    }
-
-    // Exports
-    function exportToCSV(){
-      const emp = employees.find(e => e.id === currentEmployeeId) || employees[0];
-      let csv = `Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nEmployee: ${emp.name} (${emp.employeeId})\nDate,Location,Arrival,Lunch,LunchLate,Status,Late,AccumMins,Leave,Approval,Approver,Comments\n`;
-      getEmployeeEntries(emp.id).forEach(en => {
-        const lunch = (en.lunchStart && en.lunchEnd) ? `${en.lunchStart}-${en.lunchEnd}` : '-';
-        const comment = (en.comments || '').replace(/"/g, '""');
-        csv += `${en.date},${en.location || '-'},${en.arrivalTime || '-'},${lunch},${en.lunchLateMinutes || 0},${en.status || '-'},${en.lateMinutes || 0},${en.accumulatedMinutes || 0},${en.leaveTaken || 0},${en.approvalStatus || '-'},${en.approver || '-'},"${comment}"\n`;
-      });
-      downloadCSV(csv, `leave_tracker_${emp.employeeId || 'employee'}.csv`);
-    }
-
-    function exportAllEmployeesCSV(){
-      let csv = `Generated by: Tsiku Leave Tracker - Beautiful and Nice Reports\nEmployee,ID,Lunch Group,Date,Location,Arrival,Lunch,LunchLate,Status,Late,AccumMins,Leave,Approval,Approver,Comments\n`;
-      employees.forEach(emp => {
-        getEmployeeEntries(emp.id).forEach(en => {
-          const lunch = (en.lunchStart && en.lunchEnd) ? `${en.lunchStart}-${en.lunchEnd}` : '-';
-          const comment = (en.comments || '').replace(/"/g, '""');
-          csv += `${emp.name},${emp.employeeId},${emp.lunchGroup || 'A'},${en.date},${en.location || '-'},${en.arrivalTime || '-'},${lunch},${en.lunchLateMinutes || 0},${en.status || '-'},${en.lateMinutes || 0},${en.accumulatedMinutes || 0},${en.leaveTaken || 0},${en.approvalStatus || '-'},${en.approver || '-'},"${comment}"\n`;
-        });
-      });
-      downloadCSV(csv, 'leave_tracker_all_employees.csv');
-    }
-
-    function downloadCSV(content, filename){
-      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-
-    // Tabs and small UI helpers
-    function showTab(event, tabName){
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-      if(event && event.target) event.target.classList.add('active');
-      safeGet(tabName)?.classList.add('active');
-    }
-    function clearAllData(){ if(!confirm('Clear ALL data? Cannot be undone!')) return; entries = []; employees = [{ id: 'emp_' + Date.now(), name: 'Default Employee', employeeId: 'EMP001', lunchGroup: 'A' }]; currentEmployeeId = employees[0].id; saveData(); populateEmployeeSelectors(); updateAllDisplays(); alert('All data cleared'); }
-
-    function showComment(c){ if(!c || !c.trim()){ alert('No comments'); return; } safeGet('commentContent').textContent = c; safeGet('commentModal').classList.add('active'); }
-    function closeCommentModal(){ safeGet('commentModal').classList.remove('active'); }
-
-    // Initialize
-    document.addEventListener('DOMContentLoaded', function(){
-      loadData();
-      setDefaultDate();
-      toggleArrivalTime();
-      // Attach defensive listeners to avoid errors if elements missing
-      ['arrivalTime','dayStatus','lunchStart','lunchEnd'].forEach(id => {
-        const el = safeGet(id); if(el) el.addEventListener('change', () => { calculateLate(); calculateLunchPenalty(); });
-      });
-    });
-  </script>
+// ─── Init ────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{ load(); setToday(); toggleStatus(); });
+</script>
 </body>
 </html>
