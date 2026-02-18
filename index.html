@@ -98,6 +98,7 @@
     .strip-item .sv{font-size:20px;font-weight:700;color:var(--brand);font-family:'DM Mono',monospace;margin-top:4px}
     .report-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap}
     .report-bar select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit}
+    .edit-highlight{background:#fffbeb !important}
     .emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;margin-top:16px}
     .emp-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
     .emp-card h4{font-size:15px;font-weight:700;color:var(--brand)}
@@ -360,7 +361,7 @@
     <button class="btn btn-secondary btn-sm" onclick="exportBalanceCSV()">⬇ CSV</button>
   </div>
   <div class="table-wrap"><table>
-    <thead><tr><th>Date</th><th>Arrival</th><th>Late Min</th><th>Late Decision</th><th>Lunch</th><th>Lunch Extra</th><th>Lunch Decision</th><th>Status</th><th>Accrued Min</th><th>Leave</th><th>Running Balance</th><th>Notes</th></tr></thead>
+    <thead><tr><th>Date</th><th>Arrival</th><th>Late Min</th><th>Late Decision</th><th>Lunch</th><th>Lunch Extra</th><th>Lunch Decision</th><th>Status</th><th>Accrued Min</th><th>Leave</th><th>Running Balance</th><th>Notes</th><th>Actions</th></tr></thead>
     <tbody id="balanceBody"></tbody>
   </table></div>
 </div>
@@ -413,6 +414,97 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('pendingModal')">Cancel</button>
       <button class="btn btn-primary" onclick="submitPendingDecision()">Submit Decision</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ENTRY MODAL -->
+<div id="editModal" class="modal">
+  <div class="modal-box" style="max-width:640px">
+    <button class="modal-close" onclick="closeModal('editModal')">×</button>
+    <h3>✏️ Edit Entry</h3>
+    <div style="background:var(--warn-light);border-left:4px solid var(--warn);border-radius:8px;padding:10px 14px;font-size:12px;color:#92400e;margin-bottom:16px">
+      Editing will <strong>recalculate accumulation</strong> based on your updated values and approval decisions.
+    </div>
+    <input type="hidden" id="editEmpId"/>
+    <input type="hidden" id="editOrigDate"/>
+    <div class="form-grid">
+      <div class="fg"><label>Employee</label><select id="editEmployee"></select></div>
+      <div class="fg"><label>Date</label><input type="date" id="editDate"/></div>
+      <div class="fg"><label>Status</label>
+        <select id="editStatus" onchange="toggleEditStatus()">
+          <option value="worked">Worked</option>
+          <option value="sick">Sick Leave</option>
+          <option value="annual">Annual Leave</option>
+          <option value="study">Study Leave</option>
+          <option value="family">Family Leave</option>
+        </select>
+      </div>
+      <div class="fg" id="editLeaveAmtGroup" style="display:none"><label>Leave Days</label><input type="number" id="editLeaveTaken" step="0.5" value="1" min="0.5" max="1"/></div>
+    </div>
+
+    <div id="editWorkedFields">
+      <!-- Arrival -->
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">⏰ Arrival</div>
+        <div class="form-grid">
+          <div class="fg"><label>Arrival Time</label><input type="time" id="editArrival" onchange="previewEditAccum()"/></div>
+          <div></div>
+        </div>
+        <div id="editLateBlock" style="display:none">
+          <div class="appr-block">
+            <div class="appr-title">🔑 Late Arrival — Manager Decision</div>
+            <div class="form-grid">
+              <div class="fg"><label>Manager Name</label><input type="text" id="editLateManager" placeholder="Leave blank = no approval" onchange="previewEditAccum()"/></div>
+              <div class="fg"><label>Decision</label>
+                <select id="editLateDecision" onchange="previewEditAccum()">
+                  <option value="approved">✅ APPROVE — waive deduction</option>
+                  <option value="rejected">❌ REJECT — apply deduction</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg"><label>Reason</label><textarea id="editLateReason" rows="2"></textarea></div>
+          </div>
+        </div>
+      </div>
+      <!-- Lunch -->
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">🥗 Lunch</div>
+        <div class="form-grid">
+          <div class="fg"><label>Lunch Group</label>
+            <div class="radio-row">
+              <label><input type="radio" name="editLunchGrp" value="A" onchange="previewEditAccum()"/> Group A (12:00–13:00)</label>
+              <label><input type="radio" name="editLunchGrp" value="B" onchange="previewEditAccum()"/> Group B (13:00–14:00)</label>
+            </div>
+          </div>
+          <div></div>
+          <div class="fg"><label>Lunch Start</label><input type="time" id="editLunchStart" onchange="previewEditAccum()"/></div>
+          <div class="fg"><label>Lunch End (Return)</label><input type="time" id="editLunchEnd" onchange="previewEditAccum()"/></div>
+        </div>
+        <div id="editLunchBlock" style="display:none">
+          <div class="appr-block">
+            <div class="appr-title">🔑 Extended Lunch — Manager Decision</div>
+            <div class="form-grid">
+              <div class="fg"><label>Manager Name</label><input type="text" id="editLunchManager" placeholder="Leave blank = no approval"/></div>
+              <div class="fg"><label>Decision</label>
+                <select id="editLunchDecision">
+                  <option value="approved">✅ APPROVE — waive lunch deduction</option>
+                  <option value="rejected">❌ REJECT — apply deduction</option>
+                </select>
+              </div>
+            </div>
+            <div class="fg"><label>Reason</label><textarea id="editLunchReason" rows="2"></textarea></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fg" style="margin-top:8px"><label>Comments / Notes</label><textarea id="editComments" rows="3"></textarea></div>
+    <!-- Live preview -->
+    <div id="editAccumPreview" style="background:var(--brand-light);border-radius:8px;padding:10px 14px;font-size:13px;color:#1e40af;margin-bottom:4px;display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Save Changes</button>
     </div>
   </div>
 </div>
@@ -907,6 +999,7 @@ function renderBalance(){
       else lunchDecCol='<span class="badge bg-yellow">⏳ None</span>';
     }
     const comm=e.comments?`<span style="cursor:pointer;color:var(--brand);text-decoration:underline" onclick="viewComment(${JSON.stringify(e.comments)})">📝 View</span>`:'-';
+    const safeEmpId=CSS.escape(e.employeeId); // for querySelector
     const r=tb.insertRow();
     r.innerHTML=`<td>${fmtDate(e.date)}</td>
     <td style="font-family:'DM Mono',monospace">${e.arrivalTime||'-'}</td>
@@ -917,7 +1010,11 @@ function renderBalance(){
     <td style="font-family:'DM Mono',monospace;color:var(--success);font-weight:700">+${e.accumulatedMinutes||0}</td>
     <td>${e.leaveTaken?e.leaveTaken.toFixed(1):'-'}</td>
     <td><strong style="color:var(--brand);font-family:'DM Mono',monospace">${(running/480).toFixed(2)}</strong></td>
-    <td>${comm}</td>`;
+    <td>${comm}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-secondary btn-sm" onclick="openEditModal('${e.employeeId}','${e.date}')" title="Edit this entry">✏️ Edit</button>
+      <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteEntry('${e.employeeId}','${e.date}')" title="Delete this entry">🗑</button>
+    </td>`;
   });
 }
 
@@ -998,8 +1095,161 @@ function exportBalanceCSV(){
 }
 
 // ═══════════════════════════════════════════════
-// RENDER ALL
+// EDIT & DELETE ENTRIES
 // ═══════════════════════════════════════════════
+function openEditModal(empId, date){
+  const e=entries.find(x=>x.employeeId===empId&&x.date===date);
+  if(!e){alert('Entry not found.');return;}
+
+  // Populate employee dropdown in modal
+  const sel=$('editEmployee');
+  sel.innerHTML=employees.map(emp=>`<option value="${emp.id}">${emp.name} (${emp.employeeId})</option>`).join('');
+  sel.value=e.employeeId;
+
+  // Hidden fields to track which entry we're editing
+  $('editEmpId').value=empId;
+  $('editOrigDate').value=date;
+
+  // Basic fields
+  $('editDate').value=e.date;
+  $('editStatus').value=e.status;
+  $('editLeaveTaken').value=e.leaveTaken||1;
+  $('editComments').value=e.comments||'';
+
+  // Arrival
+  $('editArrival').value=e.arrivalTime||'07:45';
+  $('editLateManager').value=e.lateManager||'';
+  $('editLateReason').value=e.lateReason||'';
+  $('editLateDecision').value=(e.lateDecision==='approved'?'approved':'rejected');
+
+  // Lunch
+  const grpVal=e.lunchGroup||'A';
+  document.querySelectorAll('input[name="editLunchGrp"]').forEach(r=>r.checked=(r.value===grpVal));
+  $('editLunchStart').value=e.lunchStart||'';
+  $('editLunchEnd').value=e.lunchEnd||'';
+  $('editLunchManager').value=e.lunchManager||'';
+  $('editLunchReason').value=e.lunchReason||'';
+  $('editLunchDecision').value=(e.lunchDecision==='approved'?'approved':'rejected');
+
+  // Show/hide blocks
+  toggleEditStatus();
+  previewEditAccum();
+  openModal('editModal');
+}
+
+function toggleEditStatus(){
+  const s=$('editStatus').value;
+  $('editWorkedFields').style.display=s==='worked'?'block':'none';
+  $('editLeaveAmtGroup').style.display=['annual','study','family'].includes(s)?'block':'none';
+}
+
+function previewEditAccum(){
+  if($('editStatus').value!=='worked'){$('editAccumPreview').style.display='none';return;}
+  const arr=$('editArrival').value||'07:45';
+  const arrLate=Math.max(0,Math.round(toMin(arr)-toMin(OA)));
+  const lateBlk=$('editLateBlock');
+  lateBlk.style.display=arrLate>0?'block':'none';
+
+  const le=$('editLunchEnd').value;
+  const g=document.querySelector('input[name="editLunchGrp"]:checked')?.value||'A';
+  const lunchLate=le?Math.max(0,toMin(le)-toMin(LUNCH[g].end)):0;
+  $('editLunchBlock').style.display=lunchLate>0?'block':'none';
+
+  const lateMgr=$('editLateManager').value.trim();
+  const lateDec=$('editLateDecision').value;
+  const lunchMgr=$('editLunchManager').value.trim();
+  const lunchDec=$('editLunchDecision').value;
+  const accum=computeAccum(arr,lateDec,lateMgr,le,g,lunchDec,lunchMgr);
+
+  const lateNote=arrLate===0?'On time':(lateMgr&&lateDec==='approved'?`${arrLate}m late — WAIVED by ${lateMgr}`:`${arrLate}m late — deducted`);
+  const lunchNote=lunchLate===0?'On time':(lunchMgr&&lunchDec==='approved'?`${lunchLate}m over — WAIVED by ${lunchMgr}`:`${lunchLate>0?lunchLate+'m over — deducted':'on time'}`);
+
+  const prev=$('editAccumPreview');
+  prev.style.display='block';
+  prev.innerHTML=`<strong>📊 Preview:</strong> ${accum} min accrued (${(accum/480).toFixed(3)} days) &nbsp;·&nbsp; Arrival: ${lateNote} &nbsp;·&nbsp; Lunch: ${lunchNote}`;
+}
+
+function saveEdit(){
+  const origEmpId=$('editEmpId').value;
+  const origDate=$('editOrigDate').value;
+  const newEmpId=$('editEmployee').value;
+  const newDate=$('editDate').value;
+  const status=$('editStatus').value;
+  const arr=$('editArrival').value||OA;
+  const comments=$('editComments').value||'';
+  const leaveTaken=['annual','study','family'].includes(status)?parseFloat($('editLeaveTaken').value||0):0;
+  if(!newDate){alert('Please select a date.');return;}
+
+  const g=document.querySelector('input[name="editLunchGrp"]:checked')?.value||'A';
+  const ls=$('editLunchStart').value||null, le=$('editLunchEnd').value||null;
+
+  const arrivalLateMin=Math.max(0,Math.round(toMin(arr)-toMin(OA)));
+  const lateManager=arrivalLateMin>0?$('editLateManager').value.trim()||null:null;
+  const lateDecision=arrivalLateMin>0?$('editLateDecision').value:null;
+  const lateReason=arrivalLateMin>0?$('editLateReason').value.trim()||null:null;
+  if(arrivalLateMin>0&&lateManager&&!lateReason){alert('Reason is required when a manager decision is provided.');return;}
+
+  const lunchLateMin=le?Math.max(0,toMin(le)-toMin(LUNCH[g].end)):0;
+  const lunchManager=lunchLateMin>0?$('editLunchManager').value.trim()||null:null;
+  const lunchDecision=lunchLateMin>0?$('editLunchDecision').value:null;
+  const lunchReason=lunchLateMin>0?$('editLunchReason').value.trim()||null:null;
+  if(lunchLateMin>0&&lunchManager&&!lunchReason){alert('Reason is required when a manager decision is provided.');return;}
+
+  let accum=0;
+  if(status==='worked') accum=computeAccum(arr,lateDecision,lateManager,le,g,lunchDecision,lunchManager);
+
+  // Build clean comment trail
+  let trail=comments;
+  if(arrivalLateMin>0){
+    const label=lateManager?`${lateDecision.toUpperCase()} by: ${lateManager}${lateReason?' — "'+lateReason+'"':''}`:'No approval — deduction applied';
+    trail=`[LATE ARRIVAL ${arrivalLateMin}min — ${label}]\n`+trail;
+  }
+  if(lunchLateMin>0){
+    const label=lunchManager?`${lunchDecision.toUpperCase()} by: ${lunchManager}${lunchReason?' — "'+lunchReason+'"':''}`:'No approval — deduction applied';
+    trail=`[LUNCH LATE ${lunchLateMin}min — ${label}]\n`+trail;
+  }
+
+  // Remove the original entry
+  const origIdx=entries.findIndex(e=>e.employeeId===origEmpId&&e.date===origDate);
+  if(origIdx>=0) entries.splice(origIdx,1);
+
+  // If date/employee changed, also remove any entry that would conflict at the new slot
+  if(newDate!==origDate||newEmpId!==origEmpId){
+    const conflictIdx=entries.findIndex(e=>e.employeeId===newEmpId&&e.date===newDate);
+    if(conflictIdx>=0){
+      if(!confirm(`An entry already exists for this employee on ${newDate}. Replace it?`)){
+        // Restore original
+        entries.push({employeeId:origEmpId,date:origDate,status,arrivalTime:arr,arrivalLateMin,lateDecision:lateDecision||'none',lateManager,lateReason,lunchGroup:status==='worked'?g:null,lunchStart:ls,lunchEnd:le,lunchLateMin,lunchDecision:lunchDecision||'none',lunchManager,lunchReason,accumulatedMinutes:accum,leaveTaken,comments:trail,leaveApproval:null,leaveApprover:null});
+        persist();closeModal('editModal');renderAll();return;
+      }
+      entries.splice(conflictIdx,1);
+    }
+  }
+
+  entries.push({
+    employeeId:newEmpId,date:newDate,status,
+    arrivalTime:arr,arrivalLateMin,
+    lateDecision:lateDecision||'none',lateManager,lateReason,
+    lunchGroup:status==='worked'?g:null,lunchStart:ls,lunchEnd:le,lunchLateMin,
+    lunchDecision:lunchDecision||'none',lunchManager,lunchReason,
+    accumulatedMinutes:accum,leaveTaken,comments:trail,
+    leaveApproval:null,leaveApprover:null
+  });
+
+  persist();closeModal('editModal');renderAll();
+  alert(`✅ Entry updated!\nAccrued: ${accum} min (${(accum/480).toFixed(3)} days)`);
+}
+
+function deleteEntry(empId,date){
+  const e=entries.find(x=>x.employeeId===empId&&x.date===date);
+  const emp=employees.find(x=>x.id===empId)||{name:'?'};
+  if(!e)return;
+  if(!confirm(`🗑 Delete entry for ${emp.name} on ${fmtDate(date)}?\n\nThis cannot be undone.`))return;
+  entries=entries.filter(x=>!(x.employeeId===empId&&x.date===date));
+  persist();renderAll();
+}
+
+
 function renderAll(){renderCards();renderPending();}
 document.addEventListener('DOMContentLoaded',()=>{load();setToday();toggleStatus();});
 </script>
